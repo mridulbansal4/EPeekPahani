@@ -1,26 +1,30 @@
 package io.sc.eppCordova.lossclaim.data
 
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
+import android.content.Context
+import io.sc.eppCordova.data.local.CsvParserService
 
-class LossClaimRepository(private val dao: LossClaimDao) {
+class LossClaimRepository(private val dao: LossClaimDao, private val context: Context) {
+    private val csvParser = CsvParserService(context)
 
     suspend fun getFarmerByMobile(mobile: String): FarmerEntity? {
-        // Mocking CSV fetch here for now if not in DB
         var farmer = dao.getFarmerByMobile(mobile)
         if (farmer == null) {
-            farmer = FarmerEntity(
-                mobileNumber = mobile,
-                farmerName = "Ramesh Kumar",
-                village = "Shirur",
-                taluka = "Shirur",
-                district = "Pune",
-                gatNumber = "102",
-                crop = "Soybean",
-                area = "2.3 Acre",
-                insuranceStatus = true
-            )
-            dao.insertFarmer(farmer)
+            val csvFarmer = csvParser.getFarmerByMobile(mobile)
+            if (csvFarmer != null) {
+                farmer = FarmerEntity(
+                    mobileNumber = mobile,
+                    farmerName = csvFarmer.name ?: "Unknown",
+                    village = csvFarmer.village ?: "Unknown",
+                    taluka = csvFarmer.taluka ?: "Unknown",
+                    district = csvFarmer.district ?: "Unknown",
+                    gatNumber = csvFarmer.khasraNumber ?: "N/A",
+                    primaryCrop = csvFarmer.primaryCrop,
+                    secondaryCrop = csvFarmer.secondaryCrop,
+                    area = csvFarmer.landHoldingHa ?: "0",
+                    insuranceStatus = csvFarmer.pmKisanBeneficiary == "Yes"
+                )
+                dao.insertFarmer(farmer)
+            }
         }
         return farmer
     }

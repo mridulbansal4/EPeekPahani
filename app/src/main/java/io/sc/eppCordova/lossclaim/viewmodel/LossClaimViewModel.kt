@@ -22,7 +22,7 @@ class LossClaimViewModel(application: Application) : AndroidViewModel(applicatio
 
     init {
         val dao = AppDatabase.getDatabase(application).lossClaimDao()
-        repository = LossClaimRepository(dao)
+        repository = LossClaimRepository(dao, application)
     }
 
     fun loadFarmerData(mobileNumber: String) {
@@ -41,7 +41,7 @@ class LossClaimViewModel(application: Application) : AndroidViewModel(applicatio
             val claim = LossClaimEntity(
                 mobileNumber = farmer.mobileNumber,
                 gatNumber = farmer.gatNumber,
-                crop = farmer.crop,
+                crop = farmer.primaryCrop ?: "Unknown",
                 damageType = _selectedDamageType.value,
                 damagePercentage = damagePercent,
                 estimatedCompensation = compensation,

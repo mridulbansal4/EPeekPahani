@@ -14,7 +14,7 @@ class OfflineSyncWorker(
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         try {
             val dao = AppDatabase.getDatabase(applicationContext).lossClaimDao()
-            val repository = LossClaimRepository(dao)
+            val repository = LossClaimRepository(dao, applicationContext)
 
             val unsyncedClaims = repository.getUnsyncedClaims()
 

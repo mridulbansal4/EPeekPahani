@@ -18,7 +18,7 @@
             android:id="@+id/iv_logo"
             android:layout_width="160dp"
             android:layout_height="160dp"
-            app:srcCompat="@drawable/ic_splash_emblem"
+            app:srcCompat="@drawable/logo_krishi_prabandh"
             android:scaleType="fitCenter"
             android:contentDescription="@string/app_name" />
 

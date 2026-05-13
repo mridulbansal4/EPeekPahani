@@ -1,7 +1,7 @@
 <resources>
 
-    <string name="app_name">Smart e-Peek Pahani</string>
-    <string name="splash_title">Smart e-Peek Pahani</string>
+    <string name="app_name">Krishi Prabandh SwaSurvey</string>
+    <string name="splash_title">Krishi Prabandh SwaSurvey</string>
     <string name="splash_subtitle">AI Video-Assisted Crop Survey</string>
     <string name="select_language">Select Language</string>
     <string name="marathi">मराठी (Marathi)</string>
@@ -201,7 +201,7 @@
     <string name="str_auto_170">पिकाचे फोटो आणि स्थान</string>
     <string name="str_auto_171">मी प्रमाणित करतो की वरील माहिती अचूक आहे आणि दिलेल्या पिकाच्या क्षेत्राबाबत सर्व तपशील सत्य आहेत.</string>
     <string name="str_auto_172">सादर करा</string>
-    <string name="str_auto_173">ई-पीक पाहणी</string>
+    <string name="str_auto_173">Krishi Prabandh SwaSurvey</string>
     <string name="str_auto_174">स्मार्ट कृषी सर्वेक्षण</string>
     <string name="str_auto_175">Smart AgriStack Platform</string>
     <string name="str_auto_176">लोड होत आहे...</string>

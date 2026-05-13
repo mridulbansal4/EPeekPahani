@@ -10,17 +10,17 @@
     <!-- Top App Bar -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="48dp"
+        android:layout_height="56dp"
         android:orientation="horizontal"
         android:gravity="center_vertical"
         android:paddingStart="8dp"
-        android:paddingEnd="8dp"
+        android:paddingEnd="16dp"
         android:background="@color/surface">
 
         <ImageButton
             android:id="@+id/btn_back"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             app:srcCompat="@drawable/ic_arrow_back"
             app:tint="@color/primary"
@@ -31,7 +31,7 @@
             android:layout_height="wrap_content"
             android:text="@string/str_auto_140"
             android:textColor="@color/primary"
-            android:textSize="18sp"
+            android:textSize="20sp"
             android:textStyle="bold"
             android:layout_marginStart="16dp" />
     </LinearLayout>
@@ -47,27 +47,20 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:gravity="center_horizontal"
-            android:paddingStart="16dp"
-            android:paddingEnd="16dp"
-            android:paddingTop="32dp"
-            android:paddingBottom="24dp">
+            android:paddingStart="24dp"
+            android:paddingEnd="24dp"
+            android:paddingTop="48dp"
+            android:paddingBottom="32dp">
 
-            <!-- OTP Illustration -->
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="240dp"
-                android:layout_height="240dp"
-                app:cardCornerRadius="24dp"
-                app:cardElevation="4dp"
-                android:layout_marginBottom="32dp">
-
-                <ImageView
-                    android:id="@+id/iv_otp_illustration"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:scaleType="centerCrop"
-                    app:srcCompat="@drawable/ic_otp_illustration"
-                    android:contentDescription="OTP verification illustration" />
-            </com.google.android.material.card.MaterialCardView>
+            <!-- AI Agriculture Logo -->
+            <ImageView
+                android:id="@+id/iv_otp_illustration"
+                android:layout_width="160dp"
+                android:layout_height="160dp"
+                android:scaleType="fitCenter"
+                app:srcCompat="@drawable/ic_ai_agri_logo"
+                android:layout_marginBottom="40dp"
+                android:contentDescription="AI Agriculture Logo" />
 
             <!-- OTP Sent To -->
             <TextView
@@ -75,8 +68,8 @@
                 android:layout_height="wrap_content"
                 android:text="@string/str_auto_141"
                 android:textColor="@color/on_surface_variant"
-                android:textSize="14sp"
-                android:layout_marginBottom="4dp" />
+                android:textSize="16sp"
+                android:layout_marginBottom="8dp" />
 
             <TextView
                 android:id="@+id/tv_phone_number"
@@ -84,13 +77,13 @@
                 android:layout_height="wrap_content"
                 android:text="@string/str_auto_142"
                 android:textColor="@color/on_surface"
-                android:textSize="18sp"
+                android:textSize="22sp"
                 android:textStyle="bold"
-                android:layout_marginBottom="32dp" />
+                android:layout_marginBottom="48dp" />
 
             <!-- OTP Input Boxes -->
             <LinearLayout
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center"
@@ -98,51 +91,51 @@
 
                 <EditText
                     android:id="@+id/et_otp1"
-                    android:layout_width="52dp"
-                    android:layout_height="52dp"
+                    android:layout_width="56dp"
+                    android:layout_height="64dp"
                     android:gravity="center"
                     android:inputType="number"
                     android:maxLength="1"
-                    android:textSize="24sp"
+                    android:textSize="28sp"
                     android:textStyle="bold"
                     android:textColor="@color/on_surface"
                     android:background="@drawable/bg_otp_input"
-                    android:layout_marginEnd="12dp" />
+                    android:layout_marginEnd="16dp" />
 
                 <EditText
                     android:id="@+id/et_otp2"
-                    android:layout_width="52dp"
-                    android:layout_height="52dp"
+                    android:layout_width="56dp"
+                    android:layout_height="64dp"
                     android:gravity="center"
                     android:inputType="number"
                     android:maxLength="1"
-                    android:textSize="24sp"
+                    android:textSize="28sp"
                     android:textStyle="bold"
                     android:textColor="@color/on_surface"
                     android:background="@drawable/bg_otp_input"
-                    android:layout_marginEnd="12dp" />
+                    android:layout_marginEnd="16dp" />
 
                 <EditText
                     android:id="@+id/et_otp3"
-                    android:layout_width="52dp"
-                    android:layout_height="52dp"
+                    android:layout_width="56dp"
+                    android:layout_height="64dp"
                     android:gravity="center"
                     android:inputType="number"
                     android:maxLength="1"
-                    android:textSize="24sp"
+                    android:textSize="28sp"
                     android:textStyle="bold"
                     android:textColor="@color/on_surface"
                     android:background="@drawable/bg_otp_input"
-                    android:layout_marginEnd="12dp" />
+                    android:layout_marginEnd="16dp" />
 
                 <EditText
                     android:id="@+id/et_otp4"
-                    android:layout_width="52dp"
-                    android:layout_height="52dp"
+                    android:layout_width="56dp"
+                    android:layout_height="64dp"
                     android:gravity="center"
                     android:inputType="number"
                     android:maxLength="1"
-                    android:textSize="24sp"
+                    android:textSize="28sp"
                     android:textStyle="bold"
                     android:textColor="@color/on_surface"
                     android:background="@drawable/bg_otp_input" />
@@ -154,61 +147,28 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/str_auto_143"
-                android:textColor="@color/on_surface_variant"
-                android:textSize="14sp"
+                android:textColor="@color/primary"
+                android:textSize="16sp"
                 android:textStyle="bold"
-                android:layout_marginBottom="32dp" />
+                android:layout_marginBottom="48dp" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
 
             <!-- Confirm Button -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_verify_otp"
                 android:layout_width="match_parent"
-                android:layout_height="48dp"
+                android:layout_height="60dp"
                 android:text="@string/str_auto_144"
-                android:textSize="16sp"
+                android:textSize="18sp"
                 android:textStyle="bold"
-                app:backgroundTint="@color/primary_container"
+                app:backgroundTint="@color/primary"
                 android:textColor="@color/on_primary"
-                app:cornerRadius="12dp" />
-
-            <!-- Government Branding -->
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_marginTop="40dp"
-                android:alpha="0.6">
-
-                <ImageView
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    app:srcCompat="@drawable/ic_maharashtra_emblem"
-                    android:scaleType="fitCenter"
-                    android:contentDescription="Gov Seal" />
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:layout_marginStart="12dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/str_auto_84"
-                        android:textColor="@color/on_surface_variant"
-                        android:textSize="10sp" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/str_auto_145"
-                        android:textColor="@color/on_surface_variant"
-                        android:textSize="10sp"
-                        android:letterSpacing="0.05" />
-                </LinearLayout>
-            </LinearLayout>
+                app:cornerRadius="30dp"
+                app:elevation="4dp" />
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>

@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background_color">
+    android:background="@color/background">
 
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
@@ -14,31 +14,36 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="24dp">
+            android:padding="20dp">
 
+            <!-- Header -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Pre-Call AI Setup"
                 android:textColor="@color/primary"
-                android:textSize="24sp"
+                android:textSize="28sp"
                 android:textStyle="bold"
-                android:layout_marginTop="16dp" />
+                android:layout_marginTop="8dp" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Fetching data from AgriStack..."
-                android:textColor="@color/text_secondary"
+                android:text="AgriStack Data Verified"
+                android:textColor="@color/primary"
                 android:textSize="14sp"
+                android:drawableStart="@drawable/ic_check_circle"
+                android:drawablePadding="8dp"
                 android:layout_marginTop="8dp"
                 android:layout_marginBottom="24dp" />
 
+            <!-- Farmer Details Card -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:cardCornerRadius="16dp"
                 app:cardElevation="2dp"
+                app:cardBackgroundColor="@color/surface"
                 app:strokeColor="@color/outline_variant"
                 app:strokeWidth="1dp">
 
@@ -46,69 +51,225 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="20dp"
-                    android:background="@color/surface">
+                    android:padding="24dp">
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Farmer Details"
                         android:textColor="@color/primary"
-                        android:textSize="16sp"
+                        android:textSize="18sp"
                         android:textStyle="bold"
-                        android:layout_marginBottom="16dp" />
+                        android:layout_marginBottom="20dp" />
 
+                    <!-- Farmer Name -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Farmer Name"
+                        android:textColor="@color/on_surface_variant"
+                        android:textSize="12sp" />
                     <TextView
                         android:id="@+id/tv_farmer_name"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Name: --"
+                        android:text="--"
+                        android:textColor="@color/on_surface"
                         android:textSize="16sp"
-                        android:layout_marginBottom="8dp" />
+                        android:textStyle="bold"
+                        android:layout_marginBottom="16dp" />
 
+                    <!-- Mobile Number -->
                     <TextView
-                        android:id="@+id/tv_gat_crop"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Mobile Number"
+                        android:textColor="@color/on_surface_variant"
+                        android:textSize="12sp" />
+                    <TextView
+                        android:id="@+id/tv_mobile_number"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Gat: -- | Crop: --"
+                        android:text="--"
+                        android:textColor="@color/on_surface"
                         android:textSize="16sp"
-                        android:layout_marginBottom="8dp" />
+                        android:textStyle="bold"
+                        android:layout_marginBottom="16dp" />
 
+                    <!-- Village -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Village"
+                        android:textColor="@color/on_surface_variant"
+                        android:textSize="12sp" />
+                    <TextView
+                        android:id="@+id/tv_village"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="--"
+                        android:textColor="@color/on_surface"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="16dp" />
+
+                    <!-- Survey/Gat Number -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Survey/Gat Number"
+                        android:textColor="@color/on_surface_variant"
+                        android:textSize="12sp" />
+                    <TextView
+                        android:id="@+id/tv_gat_number"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="--"
+                        android:textColor="@color/on_surface"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="16dp" />
+
+                    <!-- Primary Crop -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Primary Crop"
+                        android:textColor="@color/on_surface_variant"
+                        android:textSize="12sp" />
+                    <TextView
+                        android:id="@+id/tv_primary_crop"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="--"
+                        android:textColor="@color/on_surface"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="16dp" />
+
+                    <!-- Secondary Crop -->
+                    <LinearLayout
+                        android:id="@+id/ll_secondary_crop"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:visibility="gone">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Secondary Crop"
+                            android:textColor="@color/on_surface_variant"
+                            android:textSize="12sp" />
+                        <TextView
+                            android:id="@+id/tv_secondary_crop"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="--"
+                            android:textColor="@color/on_surface"
+                            android:textSize="16sp"
+                            android:textStyle="bold"
+                            android:layout_marginBottom="16dp" />
+                    </LinearLayout>
+
+                    <!-- Land Area -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Land Area"
+                        android:textColor="@color/on_surface_variant"
+                        android:textSize="12sp" />
+                    <TextView
+                        android:id="@+id/tv_land_area"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="--"
+                        android:textColor="@color/on_surface"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="16dp" />
+
+                    <!-- Irrigation Type -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Irrigation Type"
+                        android:textColor="@color/on_surface_variant"
+                        android:textSize="12sp" />
+                    <TextView
+                        android:id="@+id/tv_irrigation"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="--"
+                        android:textColor="@color/on_surface"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="16dp" />
+
+                    <!-- Insurance -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Insurance"
+                        android:textColor="@color/on_surface_variant"
+                        android:textSize="12sp" />
                     <TextView
                         android:id="@+id/tv_insurance"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Insurance: --"
+                        android:text="--"
+                        android:textColor="@color/primary"
                         android:textSize="16sp"
-                        android:layout_marginBottom="8dp" />
+                        android:textStyle="bold"
+                        android:layout_marginBottom="16dp" />
 
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="@color/outline_variant"
+                        android:layout_marginBottom="16dp"/>
+
+                    <!-- Detected Disaster -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Detected Disaster"
+                        android:textColor="@color/on_surface_variant"
+                        android:textSize="12sp" />
                     <TextView
                         android:id="@+id/tv_disaster_type"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Suggested Disaster: --"
+                        android:text="--"
                         android:textColor="#F57C00"
-                        android:textStyle="bold"
-                        android:textSize="16sp" />
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
+
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
             <View
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
-                android:layout_weight="1" />
+                android:layout_weight="1"
+                android:minHeight="24dp" />
 
+            <!-- Confirm & Start AI Survey Button -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnStartSurvey"
                 android:layout_width="match_parent"
-                android:layout_height="60dp"
-                android:layout_marginTop="32dp"
+                android:layout_height="64dp"
                 android:layout_marginBottom="16dp"
                 android:text="Confirm &amp; Start AI Survey"
                 android:textSize="18sp"
-                app:cornerRadius="30dp"
+                android:textStyle="bold"
+                app:backgroundTint="@color/primary"
+                android:textColor="@color/on_primary"
+                app:cornerRadius="32dp"
+                app:elevation="4dp"
                 app:icon="@drawable/ic_photo_camera"
-                app:iconGravity="textStart" />
+                app:iconGravity="textStart"
+                app:iconPadding="12dp"
+                app:iconTint="@color/on_primary" />
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>

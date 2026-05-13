@@ -11,7 +11,8 @@ data class FarmerEntity(
     val taluka: String,
     val district: String,
     val gatNumber: String,
-    val crop: String,
+    val primaryCrop: String?,
+    val secondaryCrop: String?,
     val area: String,
     val insuranceStatus: Boolean
 )
