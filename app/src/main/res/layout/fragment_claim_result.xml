@@ -55,6 +55,7 @@
                 android:padding="20dp">
 
                 <TextView
+                    android:id="@+id/tvDamageScore"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Final Damage Score: 55%"
@@ -89,7 +90,7 @@
                     android:textColor="@color/text_secondary" />
 
                 <TextView
-                    android:id="@+id/tvCompensation"
+                    android:id="@+id/tvPayoutEstimate"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="₹33,000"

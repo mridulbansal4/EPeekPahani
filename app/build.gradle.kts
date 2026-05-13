@@ -124,6 +124,12 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:32.7.1"))
     implementation("com.google.firebase:firebase-messaging")
 
+    // CSV parsing
+    implementation("com.opencsv:opencsv:5.7.1")
+
+    // PDF Generation
+    implementation("com.itextpdf:itext7-core:7.2.5")
+
     // Compose BOM and Runtime
     val composeBom = platform("androidx.compose:compose-bom:2024.06.00")
     implementation(composeBom)
