@@ -52,7 +52,7 @@ object PdfGenerator {
         var y = 50f
         val x = 40f
 
-        canvas.drawText("Smart e-Peek Pahani - AI Crop Survey Report", x, y, titlePaint)
+        canvas.drawText("Krishi Prabandh SwaSurvey - AI Crop Survey Report", x, y, titlePaint)
         y += 40f
 
         canvas.drawText("Date: $date", x, y, textPaint)
@@ -73,9 +73,14 @@ object PdfGenerator {
         y += 25f
         canvas.drawText("Gat Number: ${farmer.gatNumber}", x, y, textPaint)
         y += 20f
-        canvas.drawText("Crop: ${farmer.crop}", x, y, textPaint)
+        canvas.drawText("Primary Crop: ${farmer.primaryCrop ?: "N/A"}", x, y, textPaint)
         y += 20f
-        canvas.drawText("Area: ${farmer.area}", x, y, textPaint)
+        val secCrop = farmer.secondaryCrop?.trim()
+        if (!secCrop.isNullOrEmpty() && secCrop.lowercase() != "none" && secCrop.lowercase() != "na" && secCrop.lowercase() != "null") {
+            canvas.drawText("Secondary Crop: $secCrop", x, y, textPaint)
+            y += 20f
+        }
+        canvas.drawText("Area: ${farmer.area} Hectares", x, y, textPaint)
         y += 40f
 
         // 3. AI Assessment
