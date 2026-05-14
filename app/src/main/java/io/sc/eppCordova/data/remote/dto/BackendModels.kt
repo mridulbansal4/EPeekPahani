@@ -97,6 +97,7 @@ data class ReportDto(
     val confidenceScore: Double?,
     val geoVerified: Boolean?,
     val severityLevel: String?,
+    val uploadedEvidence: List<UploadedEvidenceDto>? = null,
     val aiRemarks: String?,
     val officerRemarks: String?,
     val assignedOfficer: String?,

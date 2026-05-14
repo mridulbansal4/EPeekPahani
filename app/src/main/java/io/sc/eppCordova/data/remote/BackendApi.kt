@@ -28,7 +28,7 @@ interface BackendApi {
     @GET("api/farmers/{id}/claims")
     suspend fun getFarmerClaims(@Path("id") farmerId: String): Response<ClaimsListDto>
 
-    @POST("api/claims")
+    @POST("api/surveys")
     suspend fun submitClaim(@retrofit2.http.Body request: ClaimRequest): Response<ClaimResponse>
 
     @Multipart

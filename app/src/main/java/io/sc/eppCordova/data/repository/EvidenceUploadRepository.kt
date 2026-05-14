@@ -29,17 +29,19 @@ class EvidenceUploadRepository @Inject constructor(
         for (photo in photos) {
             val file = File(photo.imagePath)
             if (!file.exists()) continue
-            val result = uploadSingleFile(file, "image/jpeg", farmerId)
-            if (result is ApiResult.Error) return result
-            result.data?.let { uploaded.add(it) }
+            when (val result = uploadSingleFile(file, "image/jpeg", farmerId)) {
+                is ApiResult.Success -> uploaded.add(result.data)
+                is ApiResult.Error -> return result
+            }
         }
 
         for (video in videos) {
             val file = File(video.videoPath)
             if (!file.exists()) continue
-            val result = uploadSingleFile(file, "video/mp4", farmerId)
-            if (result is ApiResult.Error) return result
-            result.data?.let { uploaded.add(it) }
+            when (val result = uploadSingleFile(file, "video/mp4", farmerId)) {
+                is ApiResult.Success -> uploaded.add(result.data)
+                is ApiResult.Error -> return result
+            }
         }
 
         return ApiResult.Success(uploaded)
