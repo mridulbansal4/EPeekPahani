@@ -4,38 +4,36 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F8F9FA"> <!-- Soft white light theme background -->
+    android:background="@android:color/black"> <!-- Fully black background for immersive camera -->
 
-    <!-- Edge-to-edge Camera Preview -->
+    <!-- Edge-to-edge Camera Preview (No top padding/margin) -->
     <androidx.camera.view.PreviewView
         android:id="@+id/viewFinder"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <!-- AI Framing Corners Overlay -->
+    <!-- Dark gradient overlay at Top for text readability -->
     <View
-        android:id="@+id/scanOverlay"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginHorizontal="24dp"
-        android:layout_marginTop="24dp"
-        android:layout_marginBottom="16dp"
-        android:background="@drawable/scan_box_border"
-        app:layout_constraintBottom_toTopOf="@id/bottomContainer"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/statusCard" />
+        android:layout_width="match_parent"
+        android:layout_height="120dp"
+        android:background="@drawable/bg_gradient_top_dark"
+        app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- Top Header (Transparent/Blur) -->
-    <LinearLayout
+    <!-- Dark gradient overlay at Bottom -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="340dp"
+        android:background="@drawable/bg_gradient_bottom_dark"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+    <!-- Top Header (Transparent Floating) -->
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/topHeader"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#99FFFFFF"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
         android:paddingHorizontal="16dp"
-        android:paddingVertical="12dp"
+        android:paddingTop="36dp" <!-- Assuming transparent status bar -->
+        android:paddingBottom="12dp"
         app:layout_constraintTop_toTopOf="parent">
 
         <ImageButton
@@ -44,17 +42,22 @@
             android:layout_height="40dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:src="@android:drawable/ic_menu_revert"
-            app:tint="#1E1E1E" />
+            app:tint="#FFFFFF"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent" />
 
         <TextView
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
             android:text="AI Survey"
-            android:textAlignment="center"
-            android:textColor="#1E1E1E"
+            android:textColor="#FFFFFF"
             android:textSize="18sp"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            app:layout_constraintStart_toEndOf="@id/btnBack"
+            app:layout_constraintEnd_toStartOf="@id/btnHelp"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent" />
 
         <ImageButton
             android:id="@+id/btnHelp"
@@ -62,167 +65,41 @@
             android:layout_height="40dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:src="@android:drawable/ic_menu_help"
-            app:tint="#1E1E1E" />
-    </LinearLayout>
+            app:tint="#FFFFFF"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <!-- Floating Status Card -->
-    <com.google.android.material.card.MaterialCardView
-        android:id="@+id/statusCard"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="16dp"
-        android:layout_marginTop="16dp"
-        app:cardBackgroundColor="#F2FFFFFF"
-        app:cardCornerRadius="16dp"
-        app:cardElevation="8dp"
-        app:layout_constraintTop_toBottomOf="@id/topHeader"
-        app:strokeWidth="0dp">
+    <!-- AI Framing Corners Overlay (Elegant thin crop guides) -->
+    <View
+        android:id="@+id/scanOverlay"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginHorizontal="32dp"
+        android:layout_marginTop="80dp"
+        android:layout_marginBottom="120dp"
+        android:background="@drawable/scan_box_brackets_elegant"
+        app:layout_constraintBottom_toTopOf="@id/bottomContainer"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/topHeader" />
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="16dp">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:id="@+id/tvStepProgress"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Field Orientation"
-                    android:textColor="#1976D2"
-                    android:textSize="18sp"
-                    android:textStyle="bold" />
-
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/chipAiStatus"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Live AI"
-                    android:textColor="#1976D2"
-                    android:textSize="12sp"
-                    app:chipBackgroundColor="#E3F2FD"
-                    app:chipCornerRadius="8dp"
-                    app:chipMinHeight="24dp"
-                    app:chipStrokeWidth="0dp" />
-            </LinearLayout>
-
-            <TextView
-                android:id="@+id/tvFarmerDetails"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="Farmer: Unknown"
-                android:textColor="#5F6368"
-                android:textSize="14sp" />
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_marginVertical="12dp"
-                android:background="#E0E0E0" />
-
-            <!-- Indicators Row -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:baselineAligned="false"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <ImageView
-                        android:layout_width="16dp"
-                        android:layout_height="16dp"
-                        android:src="@android:drawable/ic_menu_mylocation"
-                        app:tint="#4CAF50" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="4dp"
-                        android:text="Geo OK"
-                        android:textColor="#4CAF50"
-                        android:textSize="12sp"
-                        android:textStyle="bold" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:gravity="center"
-                    android:orientation="horizontal">
-
-                    <ImageView
-                        android:layout_width="16dp"
-                        android:layout_height="16dp"
-                        android:src="@android:drawable/ic_btn_speak_now"
-                        app:tint="#4CAF50" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="4dp"
-                        android:text="MIC OK"
-                        android:textColor="#4CAF50"
-                        android:textSize="12sp"
-                        android:textStyle="bold" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:gravity="end|center_vertical"
-                    android:orientation="horizontal">
-
-                    <ImageView
-                        android:layout_width="16dp"
-                        android:layout_height="16dp"
-                        android:src="@android:drawable/ic_dialog_info"
-                        app:tint="#4CAF50" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="4dp"
-                        android:text="NET OK"
-                        android:textColor="#4CAF50"
-                        android:textSize="12sp"
-                        android:textStyle="bold" />
-                </LinearLayout>
-            </LinearLayout>
-        </LinearLayout>
-    </com.google.android.material.card.MaterialCardView>
-
-    <!-- Pulse Recording Indicator -->
+    <!-- Pulse Recording Timer Indicator (Floating top center) -->
     <LinearLayout
         android:id="@+id/layoutRecordingStatus"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="16dp"
-        android:background="@drawable/bg_badge_primary_container"
-        android:backgroundTint="#FFEbee"
+        android:layout_marginTop="16dp"
+        android:background="@drawable/bg_glassmorphism_error"
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:paddingHorizontal="12dp"
         android:paddingVertical="6dp"
         android:visibility="gone"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/statusCard">
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/topHeader">
 
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/ivRecordingPulse"
@@ -237,164 +114,233 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="6dp"
-            android:text="00:00"
-            android:textColor="#F44336"
+            android:text="00:00 / 00:10"
+            android:textColor="#FFFFFF"
             android:textSize="12sp"
             android:textStyle="bold" />
     </LinearLayout>
 
-    <!-- Bottom Container (AI Guidance, Question, Controls) -->
+    <!-- Compact Floating Info Strip (Field Information Panel) -->
+    <LinearLayout
+        android:id="@+id/statusStrip"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:background="@drawable/bg_glassmorphism_dark"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="12dp"
+        android:paddingVertical="8dp"
+        app:layout_constraintBottom_toTopOf="@id/bottomContainer"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <TextView
+            android:id="@+id/tvStepProgress"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Orientation"
+            android:textColor="#FFFFFF"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+
+        <View
+            android:layout_width="4dp"
+            android:layout_height="4dp"
+            android:layout_marginHorizontal="8dp"
+            android:background="@drawable/circle_dot_muted" />
+
+        <TextView
+            android:id="@+id/tvFarmerDetails"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Farmer Details"
+            android:textColor="#E0E0E0"
+            android:textSize="12sp" />
+
+        <View
+            android:layout_width="4dp"
+            android:layout_height="4dp"
+            android:layout_marginHorizontal="8dp"
+            android:background="@drawable/circle_dot_muted" />
+
+        <ImageView
+            android:layout_width="12dp"
+            android:layout_height="12dp"
+            android:src="@android:drawable/ic_menu_mylocation"
+            app:tint="#4CAF50" />
+            
+        <View
+            android:layout_width="4dp"
+            android:layout_height="4dp"
+            android:layout_marginHorizontal="8dp"
+            android:background="@drawable/circle_dot_muted" />
+
+        <ImageView
+            android:layout_width="12dp"
+            android:layout_height="12dp"
+            android:src="@android:drawable/ic_btn_speak_now"
+            app:tint="#4CAF50" />
+    </LinearLayout>
+
+    <!-- Real-time AI Analysis Status Chip -->
+    <LinearLayout
+        android:id="@+id/chipAiAnalysisStatus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
+        android:background="@drawable/bg_glassmorphism_dark"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="12dp"
+        android:paddingVertical="8dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@id/bottomContainer"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <ProgressBar
+            android:layout_width="14dp"
+            android:layout_height="14dp"
+            android:indeterminateTint="#4CAF50" />
+
+        <TextView
+            android:id="@+id/tvAiAnalysisText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="Analyzing..."
+            android:textColor="#FFFFFF"
+            android:textSize="12sp" />
+    </LinearLayout>
+
+    <!-- AI Guidance Inline Message (Error/Action) -->
+    <TextView
+        android:id="@+id/tvAiGuidanceInline"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:background="@drawable/bg_glassmorphism_error"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="8dp"
+        android:text="Move camera slightly backward"
+        android:textColor="#FFFFFF"
+        android:textSize="14sp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@id/statusStrip"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <!-- Evidence Preview Chips Container -->
+    <LinearLayout
+        android:id="@+id/evidencePreviewContainer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginBottom="16dp"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toTopOf="@id/bottomContainer"
+        app:layout_constraintStart_toStartOf="parent">
+        <!-- Dynamically added preview chips -->
+    </LinearLayout>
+
+    <!-- Bottom Container (Question Panel & Controls) -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/bottomContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="16dp"
+        android:background="@drawable/bg_bottom_sheet_dark"
+        android:paddingTop="12dp"
+        android:paddingBottom="24dp"
+        android:paddingHorizontal="20dp"
         app:layout_constraintBottom_toBottomOf="parent">
 
-        <!-- AI Guidance Pill -->
+        <!-- Thin Progress Indicator -->
+        <ProgressBar
+            android:id="@+id/surveyProgressBar"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="2dp"
+            android:progress="20"
+            android:progressBackgroundTint="#33FFFFFF"
+            android:progressTint="#4CAF50"
+            app:layout_constraintTop_toTopOf="parent" />
+
         <TextView
-            android:id="@+id/tvAiGuidance"
+            android:id="@+id/tvProgressSteps"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="12dp"
-            android:background="@drawable/bg_badge_primary_container"
-            android:backgroundTint="#E3F2FD"
-            android:paddingHorizontal="16dp"
-            android:paddingVertical="8dp"
-            android:text="Please answer the question below."
-            android:textColor="#1976D2"
-            android:textSize="13sp"
-            android:textStyle="bold"
-            app:layout_constraintBottom_toTopOf="@id/aiQuestionCard"
+            android:layout_marginTop="8dp"
+            android:letterSpacing="0.05"
+            android:text="Orientation → Photo 1"
+            android:textAllCaps="true"
+            android:textColor="#B0BEC5"
+            android:textSize="10sp"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent" />
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/surveyProgressBar" />
 
-        <!-- Floating AI Question Card -->
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/aiQuestionCard"
+        <!-- AI Question Content -->
+        <TextView
+            android:id="@+id/tvSectionLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="SURVEY QUESTION"
+            android:textColor="#90A4AE"
+            android:textSize="10sp"
+            android:textStyle="bold"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tvProgressSteps" />
+
+        <TextView
+            android:id="@+id/tvAiInstruction"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            app:cardBackgroundColor="#FFFFFF"
-            app:cardCornerRadius="20dp"
-            app:cardElevation="12dp"
-            app:layout_constraintBottom_toTopOf="@id/cameraControlsLayout"
-            app:strokeWidth="0dp">
+            android:layout_marginTop="4dp"
+            android:lineSpacingExtra="4dp"
+            android:text="What crop was cultivated during the last season?"
+            android:textColor="#FFFFFF"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            app:layout_constraintTop_toBottomOf="@id/tvSectionLabel" />
+            
+        <!-- Listening Waveform Area (Hidden) -->
+        <LinearLayout
+            android:id="@+id/listeningLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:orientation="vertical"
+            android:visibility="gone"
+            app:layout_constraintTop_toBottomOf="@id/tvAiInstruction">
 
-            <LinearLayout
-                android:layout_width="match_parent"
+            <TextView
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="20dp">
+                android:text="Listening..."
+                android:textColor="#4CAF50"
+                android:textSize="13sp"
+                android:textStyle="italic" />
 
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:layout_marginBottom="12dp"
-                    android:orientation="horizontal">
+            <ProgressBar
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="match_parent"
+                android:layout_height="4dp"
+                android:layout_marginTop="6dp"
+                android:indeterminate="true"
+                android:indeterminateTint="#4CAF50" />
+        </LinearLayout>
 
-                    <ImageView
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:src="@android:drawable/star_on"
-                        app:tint="#1976D2" />
-
-                    <TextView
-                        android:id="@+id/tvQuestionProgress"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="8dp"
-                        android:layout_weight="1"
-                        android:text="Survey Question"
-                        android:textColor="#5F6368"
-                        android:textSize="12sp"
-                        android:textStyle="bold" />
-
-                    <!-- Mini progress bar -->
-                    <ProgressBar
-                        android:id="@+id/surveyProgressBar"
-                        style="?android:attr/progressBarStyleHorizontal"
-                        android:layout_width="60dp"
-                        android:layout_height="6dp"
-                        android:progress="20"
-                        android:progressBackgroundTint="#E0E0E0"
-                        android:progressTint="#1976D2" />
-                </LinearLayout>
-
-                <TextView
-                    android:id="@+id/tvAiInstruction"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:lineSpacingExtra="4dp"
-                    android:text="What crop was cultivated during the last season?"
-                    android:textColor="#1E1E1E"
-                    android:textSize="18sp"
-                    android:textStyle="bold" />
-
-                <!-- Listening Waveform Area (Hidden) -->
-                <LinearLayout
-                    android:id="@+id/listeningLayout"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:orientation="vertical"
-                    android:visibility="gone">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Listening..."
-                        android:textColor="#1976D2"
-                        android:textSize="13sp"
-                        android:textStyle="italic" />
-
-                    <ProgressBar
-                        style="?android:attr/progressBarStyleHorizontal"
-                        android:layout_width="match_parent"
-                        android:layout_height="4dp"
-                        android:layout_marginTop="6dp"
-                        android:indeterminate="true"
-                        android:indeterminateTint="#1976D2" />
-                </LinearLayout>
-
-                <!-- Analyzing / Verified State (Hidden) -->
-                <LinearLayout
-                    android:id="@+id/analyzingLayout"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:visibility="gone">
-
-                    <ProgressBar
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:indeterminateTint="#4CAF50" />
-
-                    <TextView
-                        android:id="@+id/tvAnalyzingText"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp"
-                        android:text="Realtime validation..."
-                        android:textColor="#4CAF50"
-                        android:textSize="14sp"
-                        android:textStyle="bold" />
-                </LinearLayout>
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
-
-        <!-- Camera Controls -->
+        <!-- Controls -->
         <LinearLayout
             android:id="@+id/cameraControlsLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center"
+            android:layout_marginTop="20dp"
+            android:gravity="center_vertical"
             android:orientation="horizontal"
-            android:paddingBottom="8dp"
-            app:layout_constraintBottom_toBottomOf="parent">
+            app:layout_constraintTop_toBottomOf="@id/listeningLayout">
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnSkip"
@@ -402,24 +348,31 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Skip"
-                android:textColor="#757575"
-                android:textStyle="bold" />
+                android:textColor="#90A4AE"
+                app:rippleColor="#33FFFFFF" />
 
             <Space
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1" />
 
-            <com.google.android.material.floatingactionbutton.FloatingActionButton
-                android:id="@+id/btnPrimaryAction"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:backgroundTint="#1976D2"
-                app:elevation="8dp"
-                app:fabCustomSize="72dp"
-                app:maxImageSize="32dp"
-                app:srcCompat="@android:drawable/ic_btn_speak_now"
-                app:tint="#FFFFFF" />
+            <!-- Circular AI Voice / Capture Button -->
+            <FrameLayout
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:background="@drawable/bg_circle_capture_button"
+                android:padding="4dp">
+
+                <com.google.android.material.floatingactionbutton.FloatingActionButton
+                    android:id="@+id/btnPrimaryAction"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    app:backgroundTint="#FFFFFF"
+                    app:elevation="4dp"
+                    app:fabCustomSize="56dp"
+                    app:srcCompat="@android:drawable/ic_btn_speak_now"
+                    app:tint="#1E1E1E" />
+            </FrameLayout>
 
             <Space
                 android:layout_width="0dp"
@@ -432,9 +385,10 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Next"
-                android:textColor="#1976D2"
-                android:textStyle="bold" />
+                android:textColor="#FFFFFF"
+                app:rippleColor="#33FFFFFF" />
         </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
+
 </androidx.constraintlayout.widget.ConstraintLayout>

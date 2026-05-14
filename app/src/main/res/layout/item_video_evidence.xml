@@ -3,31 +3,46 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="12dp"
+    android:layout_marginBottom="8dp"
+    app:cardBackgroundColor="#1E1E1E"
     app:cardCornerRadius="12dp"
-    app:cardElevation="2dp"
-    app:strokeWidth="1dp"
-    app:strokeColor="@color/outline_variant">
+    app:cardElevation="0dp"
+    app:strokeColor="#33FFFFFF"
+    app:strokeWidth="0.5dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:padding="12dp"
-        android:background="@color/surface">
+        android:padding="8dp">
 
-        <ImageView
-            android:id="@+id/ivThumbnail"
-            android:layout_width="80dp"
-            android:layout_height="80dp"
-            android:scaleType="centerCrop"
-            android:background="@color/surface_container_highest" />
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="0dp">
+
+            <ImageView
+                android:id="@+id/ivThumbnail"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                android:background="#333333" />
+                
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_gravity="center"
+                android:src="@android:drawable/ic_media_play"
+                app:tint="#FFFFFF" />
+        </com.google.android.material.card.MaterialCardView>
 
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
             android:layout_weight="1"
-            android:layout_marginStart="16dp"
             android:orientation="vertical">
 
             <TextView
@@ -35,59 +50,57 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Video Evidence"
-                android:textColor="@color/black"
-                android:textSize="16sp"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp"
                 android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/tvVideoTimestamp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="Timestamp"
-                android:textColor="@color/text_secondary"
-                android:textSize="12sp" />
-
-            <TextView
-                android:id="@+id/tvVideoDuration"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
-                android:text="Duration: 0s"
-                android:textColor="@color/text_secondary"
-                android:textSize="12sp" />
+                android:text="Timestamp"
+                android:textColor="#9E9E9E"
+                android:textSize="11sp" />
 
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="6dp"
+                android:gravity="center_vertical"
                 android:orientation="horizontal">
 
                 <TextView
                     android:id="@+id/tvGpsVerified"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/bg_badge_official_verified"
-                    android:paddingHorizontal="8dp"
+                    android:background="@drawable/bg_badge_primary_container"
+                    android:backgroundTint="#1A4CAF50"
+                    android:paddingHorizontal="6dp"
                     android:paddingVertical="2dp"
-                    android:text="GPS Verified"
-                    android:textColor="@color/white"
-                    android:textSize="10sp"
+                    android:text="GPS ✓"
+                    android:textColor="#4CAF50"
+                    android:textSize="9sp"
                     android:textStyle="bold" />
 
                 <TextView
-                    android:id="@+id/tvDisasterType"
+                    android:id="@+id/tvVideoDuration"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
-                    android:background="@drawable/bg_badge_official_verified"
-                    android:paddingHorizontal="8dp"
-                    android:paddingVertical="2dp"
-                    android:text="Disaster Type"
-                    android:textColor="@color/white"
-                    android:textSize="10sp"
-                    android:textStyle="bold" />
+                    android:text="00:00"
+                    android:textColor="#B0BEC5"
+                    android:textSize="10sp" />
             </LinearLayout>
         </LinearLayout>
+
+        <!-- Elegant Retake / Options Button -->
+        <ImageButton
+            android:id="@+id/btnOptions"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@android:drawable/ic_menu_more"
+            app:tint="#9E9E9E" />
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

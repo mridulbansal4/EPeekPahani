@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Top Left -->
+    <item>
+        <shape>
+            <solid android:color="@android:color/transparent" />
+            <stroke android:width="2dp" android:color="#A5D6A7" />
+            <padding android:bottom="0dp" android:right="0dp" />
+        </shape>
+    </item>
+    <!-- We can simplify this for a generic thin border, but to make it look like brackets, we can use a custom 9-patch or just a simple thin border with rounded corners and a soft glow for now, since building exact brackets in pure XML layer-list can be tricky and bloated. Let's make it a very thin soft green border with large radius and dashed effect. -->
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="#00000000" />
+            <stroke
+                android:width="1.5dp"
+                android:color="#4CAF50"
+                android:dashWidth="20dp"
+                android:dashGap="10dp" />
+            <corners android:radius="24dp" />
+        </shape>
+    </item>
+</layer-list>
