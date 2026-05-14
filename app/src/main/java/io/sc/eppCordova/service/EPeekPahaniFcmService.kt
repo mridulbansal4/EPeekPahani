@@ -23,7 +23,7 @@ class EPeekPahaniFcmService : FirebaseMessagingService() {
         super.onMessageReceived(remoteMessage)
 
         remoteMessage.notification?.let {
-            sendNotification(it.title ?: "ई-पीक पाहणी", it.body ?: "")
+            sendNotification(it.title ?: "Krishi Prabandh SwaSurvey", it.body ?: "")
         }
     }
 

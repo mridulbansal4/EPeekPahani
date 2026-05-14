@@ -18,7 +18,7 @@ import io.sc.eppCordova.data.local.entity.SyncQueueEntity
 
 @Database(
     entities = [Farmer::class, AdminUnit::class, LandRecord::class, CropRecord::class, SyncQueueEntity::class, LossClaimEntity::class],
-    version = 4,
+    version = 5,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

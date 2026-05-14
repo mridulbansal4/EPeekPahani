@@ -1,73 +1,53 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Material Design 3 Colors from DESIGN.md -->
-    <color name="surface">#f7fbf3</color>
-    <color name="surface_dim">#d7dbd4</color>
-    <color name="surface_bright">#f7fbf3</color>
-    <color name="surface_container_lowest">#ffffff</color>
-    <color name="surface_container_low">#f1f5ed</color>
-    <color name="surface_container">#ebefe8</color>
-    <color name="surface_container_high">#e6e9e2</color>
-    <color name="surface_container_highest">#e0e4dd</color>
-    <color name="on_surface">#181d18</color>
-    <color name="on_surface_variant">#404940</color>
-    <color name="inverse_surface">#2d322d</color>
-    <color name="inverse_on_surface">#eef2eb</color>
-    <color name="outline">#707a6f</color>
-    <color name="outline_variant">#bfc9bd</color>
-    <color name="surface_tint">#1b6c3b</color>
-    <color name="primary">#005127</color>
-    <color name="on_primary">#ffffff</color>
-    <color name="primary_container">#1a6b3a</color>
-    <color name="on_primary_container">#99e9ab</color>
-    <color name="inverse_primary">#89d89c</color>
-    <color name="secondary">#48654e</color>
-    <color name="on_secondary">#ffffff</color>
-    <color name="secondary_container">#caebcd</color>
-    <color name="on_secondary_container">#4e6b53</color>
-    <color name="tertiary">#782c39</color>
-    <color name="on_tertiary">#ffffff</color>
-    <color name="tertiary_container">#964350</color>
-    <color name="on_tertiary_container">#ffcacf</color>
-    <color name="error">#ba1a1a</color>
-    <color name="on_error">#ffffff</color>
-    <color name="error_container">#ffdad6</color>
-    <color name="on_error_container">#93000a</color>
-    <color name="background">#f7fbf3</color>
-    <color name="on_background">#181d18</color>
-    <color name="surface_variant">#e0e4dd</color>
+    <color name="gov_green">#1D6F42</color>
+    <color name="gov_green_light">#E8F5E9</color>
+    <color name="gov_green_dark">#0F4024</color>
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+    <color name="text_primary">#212121</color>
+    <color name="text_secondary">#757575</color>
+    <color name="background_color">#FAFAFA</color>
+    <color name="surface_color">#FFFFFF</color>
+    <color name="error_red">#D32F2F</color>
+    <color name="warning_orange">#F57C00</color>
 
-    <!-- Additional Brand Colors -->
-    <color name="brand_orange">#f7941d</color>
-    <color name="brand_navy">#003087</color>
-    <color name="brand_blue">#2c538e</color> <!-- Used in Dashboard Quick Actions -->
-
-    <!-- Status Badge Colors -->
-    <color name="status_verified">#2E7D32</color>
+    <!-- Restored Legacy Colors for Compatibility -->
+    <color name="text_white">#FFFFFF</color>
+    <color name="error">#D32F2F</color>
+    <color name="green_primary">#1D6F42</color>
+    <color name="green_tint">#E8F5E9</color>
+    <color name="primary">#1D6F42</color>
+    <color name="primary_container">#E8F5E9</color>
+    <color name="on_surface_variant">#757575</color>
+    <color name="surface_container_high">#E0E0E0</color>
+    <color name="outline_variant">#BDBDBD</color>
+    <color name="surface_container_low">#F5F5F5</color>
+    <color name="secondary_container">#FFCC80</color>
+    <color name="green_dark">#0F4024</color>
+    <color name="surface_container_highest">#E0E0E0</color>
+    <color name="surface_container">#EEEEEE</color>
+    <color name="divider">#E0E0E0</color>
+    <color name="bg_card">#FFFFFF</color>
+    <color name="status_pending">#9E9E9E</color>
+    <color name="saffron">#FF9933</color>
+    <color name="status_submitted">#2196F3</color>
+    <color name="status_verified">#4CAF50</color>
     <color name="status_green">#2E7D32</color>
     <color name="status_red">#ba1a1a</color>
-    <color name="status_pending">#FFA000</color>
-    <color name="status_draft">#707a6f</color>
-    
-    <!-- Legacy Mappings for Compatibility until fully refactored -->
-    <color name="green_primary">#005127</color>
-    <color name="green_dark">#0f4a27</color>
-    <color name="saffron">#f7941d</color>
-    <color name="text_white">#ffffff</color>
-    <color name="text_primary">#181d18</color>
-    <color name="text_secondary">#404940</color>
-    <color name="text_hint">#707a6f</color>
-    <color name="ripple">#33000000</color>
-    <color name="bg_card">#ffffff</color>
-    <color name="status_submitted">#003087</color>
-    <color name="status_rejected">#ba1a1a</color>
-    <color name="green_tint">#e6f0eb</color>
-    <color name="divider">#1f000000</color>
-
-    <!-- Screen / Offline UI Colors -->
-    <color name="bg_screen">#F2F6F2</color>
-    <color name="navy_light">#D6E4FF</color>
-    <color name="offline_bg">#FFF3CD</color>
-    <color name="offline_text">#856404</color>
-
+    <color name="status_draft">#FF9800</color>
+    <color name="status_rejected">#F44336</color>
+    <color name="background">#FAFAFA</color>
+    <color name="on_primary">#FFFFFF</color>
+    <color name="surface">#FFFFFF</color>
+    <color name="surface_container_lowest">#FFFFFF</color>
+    <color name="on_surface">#1C1B1F</color>
+    <color name="outline">#79747E</color>
+    <color name="on_secondary_container">#1D192B</color>
+    <color name="brand_orange">#FF9933</color>
+    <color name="bg_screen">#FAFAFA</color>
+    <color name="text_hint">#9E9E9E</color>
+    <color name="navy_light">#455A64</color>
+    <color name="offline_bg">#FFEB3B</color>
+    <color name="offline_text">#B71C1C</color>
 </resources>

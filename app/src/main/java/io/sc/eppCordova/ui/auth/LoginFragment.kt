@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
@@ -20,8 +19,6 @@ class LoginFragment : Fragment() {
     private val binding get() = _binding!!
     private val sharedViewModel: SharedViewModel by activityViewModels()
 
-    private var activeTab = 0
-
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentLoginBinding.inflate(inflater, container, false)
         return binding.root
@@ -29,8 +26,6 @@ class LoginFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        setupTabs()
 
         binding.btnSendOtp.setOnClickListener {
             val mobile = binding.etMobile.text.toString().trim()
@@ -56,35 +51,6 @@ class LoginFragment : Fragment() {
                 }
             }
         }
-    }
-
-    private fun setupTabs() {
-        val tabs = listOf(binding.tabAadhaar, binding.tabFarmer, binding.tabMkisan)
-
-        fun selectTab(index: Int) {
-            activeTab = index
-            val colorWhite       = ContextCompat.getColor(requireContext(), R.color.on_primary)
-            val colorMuted       = ContextCompat.getColor(requireContext(), R.color.on_surface_variant)
-            val activeBackground = ContextCompat.getDrawable(requireContext(), R.drawable.bg_tab_active)
-            val transparentBg    = ContextCompat.getDrawable(requireContext(), android.R.drawable.screen_background_light_transparent)
-
-            tabs.forEachIndexed { i, tab ->
-                if (i == index) {
-                    tab.background = activeBackground
-                    tab.setTextColor(colorWhite)
-                } else {
-                    tab.background = transparentBg
-                    tab.setTextColor(colorMuted)
-                }
-            }
-        }
-
-        tabs.forEachIndexed { index, tab ->
-            tab.setOnClickListener { selectTab(index) }
-        }
-
-        // Default: first tab active
-        selectTab(0)
     }
 
     override fun onDestroyView() {

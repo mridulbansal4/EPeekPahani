@@ -8,8 +8,6 @@ import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
-import androidx.navigation.ui.setupWithNavController
-import com.google.android.material.bottomnavigation.BottomNavigationView
 import dagger.hilt.android.AndroidEntryPoint
 import io.sc.eppCordova.R
 import io.sc.eppCordova.databinding.ActivityMainBinding
@@ -21,12 +19,15 @@ class MainActivity : AppCompatActivity() {
     private lateinit var navController: NavController
     private lateinit var appBarConfiguration: AppBarConfiguration
 
-    // Screens where BottomNav and Toolbar should be hidden (auth/splash flow)
+    // Screens where Toolbar should be hidden (auth/splash flow/camera)
     private val fullScreenDestinations = setOf(
         R.id.splashFragment,
         R.id.languageFragment,
         R.id.loginFragment,
-        R.id.otpFragment
+        R.id.otpFragment,
+        R.id.cameraSurveyFragment,
+        R.id.processingFragment,
+        R.id.claimResultFragment
     )
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -42,17 +43,15 @@ class MainActivity : AppCompatActivity() {
 
         // Top-level destinations (no back button shown)
         appBarConfiguration = AppBarConfiguration(
-            setOf(R.id.dashboardFragment, R.id.landSelectionFragment, R.id.lossClaimStep1Fragment, R.id.profileFragment)
+            setOf(R.id.lossClaimHomeFragment)
         )
 
         setupActionBarWithNavController(navController, appBarConfiguration)
-        binding.bottomNav.setupWithNavController(navController)
 
         // Toggle visibility based on destination
         navController.addOnDestinationChangedListener { _, destination, _ ->
             val isFullScreen = destination.id in fullScreenDestinations
             binding.appBarLayout.visibility = if (isFullScreen) View.GONE else View.VISIBLE
-            binding.bottomNav.visibility = if (isFullScreen) View.GONE else View.VISIBLE
         }
     }
 

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_loss_claim"
+    app:startDestination="@id/lossClaimHomeFragment">
+
+    <fragment
+        android:id="@+id/lossClaimHomeFragment"
+        android:name="io.sc.eppCordova.lossclaim.ui.LossClaimHomeFragment"
+        android:label="Loss Claim Home"
+        tools:layout="@layout/fragment_loss_claim_home">
+        <action
+            android:id="@+id/action_home_to_camera"
+            app:destination="@id/cameraSurveyFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/cameraSurveyFragment"
+        android:name="io.sc.eppCordova.lossclaim.ui.CameraSurveyFragment"
+        android:label="Camera Survey"
+        tools:layout="@layout/fragment_camera_survey">
+        <action
+            android:id="@+id/action_camera_to_processing"
+            app:destination="@id/processingFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/processingFragment"
+        android:name="io.sc.eppCordova.lossclaim.ui.ProcessingFragment"
+        android:label="Processing"
+        tools:layout="@layout/fragment_processing">
+        <action
+            android:id="@+id/action_processing_to_result"
+            app:destination="@id/claimResultFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/claimResultFragment"
+        android:name="io.sc.eppCordova.lossclaim.ui.ClaimResultFragment"
+        android:label="Claim Result"
+        tools:layout="@layout/fragment_claim_result" />
+
+</navigation>

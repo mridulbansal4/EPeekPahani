@@ -79,7 +79,7 @@
                 app:strokeWidth="1dp"
                 app:strokeColor="@color/outline_variant"
                 app:checkedIconTint="@color/primary"
-                style="@style/Widget.Material3.CardView.Elevated">
+                style="@style/Widget.App.CardView">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -118,7 +118,7 @@
                 app:strokeWidth="1dp"
                 app:strokeColor="@color/outline_variant"
                 app:checkedIconTint="@color/primary"
-                style="@style/Widget.Material3.CardView.Elevated">
+                style="@style/Widget.App.CardView">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -157,7 +157,7 @@
                 app:strokeWidth="1dp"
                 app:strokeColor="@color/outline_variant"
                 app:checkedIconTint="@color/primary"
-                style="@style/Widget.Material3.CardView.Elevated">
+                style="@style/Widget.App.CardView">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -199,7 +199,7 @@
                 app:cornerRadius="28dp"
                 app:icon="@drawable/ic_arrow_forward"
                 app:iconGravity="textEnd"
-                style="@style/Widget.Material3.Button" />
+                style="@style/Widget.App.Button.Primary" />
                 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>

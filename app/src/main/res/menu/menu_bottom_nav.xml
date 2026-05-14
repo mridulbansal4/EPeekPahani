@@ -5,13 +5,9 @@
         android:icon="@drawable/ic_potted_plant"
         android:title="@string/str_auto_220" />
     <item
-        android:id="@+id/landSelectionFragment"
-        android:icon="@drawable/ic_app_registration"
-        android:title="@string/str_auto_221" />
-    <item
         android:id="@+id/lossClaimStep1Fragment"
         android:icon="@drawable/ic_report_problem"
-        android:title="@string/str_auto_222" />
+        android:title="@string/str_dashboard_loss_claims" />
     <item
         android:id="@+id/profileFragment"
         android:icon="@drawable/ic_person"

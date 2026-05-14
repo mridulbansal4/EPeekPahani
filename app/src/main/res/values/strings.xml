@@ -1,5 +1,34 @@
-<?xml version="1.0" encoding="utf-8"?>
 <resources>
+
+    <string name="app_name">Krishi Prabandh SwaSurvey</string>
+    <string name="splash_title">Krishi Prabandh SwaSurvey</string>
+    <string name="splash_subtitle">AI Video-Assisted Crop Survey</string>
+    <string name="select_language">Select Language</string>
+    <string name="marathi">मराठी (Marathi)</string>
+    <string name="hindi">हिंदी (Hindi)</string>
+    <string name="english">English</string>
+    <string name="login_title">Login</string>
+    <string name="mobile_number">Mobile Number</string>
+    <string name="get_otp">Get OTP</string>
+    <string name="verify_otp">Verify OTP</string>
+    <string name="dashboard_title">Dashboard</string>
+    <string name="my_crops">My Crops</string>
+    <string name="loss_claim">Loss Claim</string>
+    <string name="loss_claim_registration">Loss Claim Registration</string>
+    <string name="loss_claim_subtitle">Please provide crop damage details</string>
+    <string name="start_ai_survey">Start AI Survey</string>
+    <string name="ai_survey_takes_time">AI survey takes 3–5 minutes. Enable camera and GPS.</string>
+    <string name="allow_continue">Allow &amp; Continue</string>
+    <string name="camera_permission_required">Camera Permission Required</string>
+    <string name="submit_claim">Submit Final Claim</string>
+    <string name="damage_type">Select Damage Type</string>
+    <string name="flood">Flood</string>
+    <string name="drought">Drought</string>
+    <string name="pest">Pest</string>
+    <string name="disease">Disease</string>
+    <string name="cyclone">Cyclone</string>
+    <string name="hailstorm">Hailstorm</string>
+
     <string name="str_auto_1">माझी शेती</string>
     <string name="str_auto_2">🌱</string>
     <string name="str_auto_3">ओळखलेले पीक: - | विश्वास: 0%</string>
@@ -172,7 +201,7 @@
     <string name="str_auto_170">पिकाचे फोटो आणि स्थान</string>
     <string name="str_auto_171">मी प्रमाणित करतो की वरील माहिती अचूक आहे आणि दिलेल्या पिकाच्या क्षेत्राबाबत सर्व तपशील सत्य आहेत.</string>
     <string name="str_auto_172">सादर करा</string>
-    <string name="str_auto_173">ई-पीक पाहणी</string>
+    <string name="str_auto_173">Krishi Prabandh SwaSurvey</string>
     <string name="str_auto_174">स्मार्ट कृषी सर्वेक्षण</string>
     <string name="str_auto_175">Smart AgriStack Platform</string>
     <string name="str_auto_176">लोड होत आहे...</string>
@@ -224,11 +253,36 @@
     <string name="str_auto_222">Loss Claim</string>
     <string name="str_auto_223">Profile</string>
 
-    <string name="app_name">E-Peek Pahani</string>
+    <!-- Dashboard Redesign Strings -->
+    <string name="str_dashboard_title">Dashboard</string>
+    <string name="str_dashboard_village">Village:</string>
+    <string name="str_dashboard_taluka">Taluka:</string>
+    <string name="str_dashboard_district">District:</string>
+    <string name="str_dashboard_state">State:</string>
+    <string name="str_dashboard_pincode">Pincode:</string>
+    <string name="str_dashboard_crop_details">Crop Details</string>
+    <string name="str_dashboard_main_crop">Main Crop:</string>
+    <string name="str_dashboard_season">Season:</string>
+    <string name="str_dashboard_irrigation">Irrigation:</string>
+    <string name="str_dashboard_area">Area:</string>
+    <string name="str_dashboard_schemes">Schemes Enrolled</string>
+    <string name="str_dashboard_no_schemes">No schemes enrolled</string>
+    <string name="str_dashboard_loss_claims">Loss Claims</string>
+
+
     <string name="title_select_language">Select Language</string>
     <string name="subtitle_select_language">Select Your Language</string>
     <string name="lang_marathi">मराठी</string>
     <string name="lang_hindi">हिंदी</string>
     <string name="lang_english">English</string>
     <string name="btn_continue">Proceed →</string>
+    
+    <!-- Dummy Firebase IDs to prevent crash since google-services.json is missing -->
+    <string name="google_app_id">1:1234567890:android:abcdef123456</string>
+    <string name="gcm_defaultSenderId">1234567890</string>
+    <string name="default_web_client_id">1234567890-abcdef.apps.googleusercontent.com</string>
+    <string name="google_api_key">AIzaSyDummyKey</string>
+    <string name="google_crash_reporting_api_key">AIzaSyDummyKey</string>
+    <string name="project_id">dummy-project</string>
+
 </resources>

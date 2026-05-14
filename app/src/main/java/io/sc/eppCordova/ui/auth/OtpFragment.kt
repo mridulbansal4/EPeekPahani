@@ -50,7 +50,7 @@ class OtpFragment : Fragment() {
         binding.btnVerifyOtp.setOnClickListener {
             val otp = "${binding.etOtp1.text}${binding.etOtp2.text}${binding.etOtp3.text}${binding.etOtp4.text}"
             if (otp.length == 4) {
-                findNavController().navigate(R.id.action_otp_to_dashboard)
+                findNavController().navigate(R.id.action_otp_to_lossClaimHome)
             } else {
                 Snackbar.make(view, "अवैध OTP", Snackbar.LENGTH_SHORT).show()
             }
