@@ -50,7 +50,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="AI Survey"
+            android:text="@string/ai_survey_title"
             android:textColor="#FFFFFF"
             android:textSize="18sp"
             android:textStyle="bold"
@@ -114,7 +114,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="6dp"
-            android:text="00:00 / 00:10"
+            android:text="@string/timer_default"
             android:textColor="#FFFFFF"
             android:textSize="12sp"
             android:textStyle="bold" />
@@ -139,7 +139,7 @@
             android:id="@+id/tvStepProgress"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Orientation"
+            android:text="@string/orientation"
             android:textColor="#FFFFFF"
             android:textSize="12sp"
             android:textStyle="bold" />
@@ -154,7 +154,7 @@
             android:id="@+id/tvFarmerDetails"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Farmer Details"
+            android:text="@string/farmer_details"
             android:textColor="#E0E0E0"
             android:textSize="12sp" />
 
@@ -209,7 +209,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
-            android:text="Analyzing..."
+            android:text="@string/analyzing"
             android:textColor="#FFFFFF"
             android:textSize="12sp" />
     </LinearLayout>
@@ -223,7 +223,7 @@
         android:background="@drawable/bg_glassmorphism_error"
         android:paddingHorizontal="16dp"
         android:paddingVertical="8dp"
-        android:text="Move camera slightly backward"
+        android:text="@string/move_camera_backward"
         android:textColor="#FFFFFF"
         android:textSize="14sp"
         android:visibility="gone"
@@ -272,7 +272,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:letterSpacing="0.05"
-            android:text="Orientation → Photo 1"
+            android:text="@string/orientation_photo_1"
             android:textAllCaps="true"
             android:textColor="#B0BEC5"
             android:textSize="10sp"
@@ -286,7 +286,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="SURVEY QUESTION"
+            android:text="@string/survey_question_label"
             android:textColor="#90A4AE"
             android:textSize="10sp"
             android:textStyle="bold"
@@ -299,7 +299,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
             android:lineSpacingExtra="4dp"
-            android:text="What crop was cultivated during the last season?"
+            android:text="@string/question_crop_cultivated"
             android:textColor="#FFFFFF"
             android:textSize="18sp"
             android:textStyle="bold"
@@ -318,7 +318,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Listening..."
+                android:text="@string/listening"
                 android:textColor="#4CAF50"
                 android:textSize="13sp"
                 android:textStyle="italic" />
@@ -347,7 +347,7 @@
                 style="@style/Widget.MaterialComponents.Button.TextButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Skip"
+                android:text="@string/skip"
                 android:textColor="#90A4AE"
                 app:rippleColor="#33FFFFFF" />
 
@@ -384,7 +384,7 @@
                 style="@style/Widget.MaterialComponents.Button.TextButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Next"
+                android:text="@string/next"
                 android:textColor="#FFFFFF"
                 app:rippleColor="#33FFFFFF" />
         </LinearLayout>

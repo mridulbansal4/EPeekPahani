@@ -31,7 +31,7 @@
             android:id="@+id/tvOverlayTimestamp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="2026-05-14 10:30 AM"
+            android:text="@string/date_time_default"
             android:textColor="#FFFFFF"
             android:textSize="10sp"
             android:textStyle="bold" />
@@ -41,7 +41,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
-            android:text="Lat: 18.5204, Lng: 73.8567"
+            android:text="@string/lat_lng_default"
             android:textColor="#B0BEC5"
             android:textSize="10sp" />
     </LinearLayout>
@@ -70,7 +70,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Evidence Details"
+            android:text="@string/evidence_details"
             android:textColor="#FFFFFF"
             android:textSize="16sp"
             android:textStyle="bold" />

@@ -26,4 +26,26 @@
     <string name="disease">रोग</string>
     <string name="cyclone">चक्रीवादळ</string>
     <string name="hailstorm">गारपीट</string>
+    <!-- AI Survey & Evidence Capture Strings -->
+    <string name="ai_survey_title">AI सर्वेक्षण</string>
+    <string name="timer_default">00:00 / 00:10</string>
+    <string name="orientation">दिशा निश्चिती</string>
+    <string name="farmer_details">शेतकऱ्याचा तपशील</string>
+    <string name="analyzing">विश्लेषण करत आहे...</string>
+    <string name="move_camera_backward">कॅमेरा थोडा मागे घ्या</string>
+    <string name="orientation_photo_1">दिशा निश्चिती → फोटो १</string>
+    <string name="survey_question_label">सर्वेक्षण प्रश्न</string>
+    <string name="question_crop_cultivated">गेल्या हंगामात कोणत्या पिकाची लागवड केली होती?</string>
+    <string name="listening">ऐकत आहे...</string>
+    <string name="skip">वगळा</string>
+    <string name="next">पुढे</string>
+    <string name="date_time_default">2026-05-14 10:30 AM</string>
+    <string name="lat_lng_default">Lat: 18.5204, Lng: 73.8567</string>
+    <string name="evidence_details">पुराव्याचा तपशील</string>
+    <string name="video_evidence">व्हिडिओ पुरावा</string>
+    <string name="timestamp">वेळ</string>
+    <string name="gps_verified">GPS ✓</string>
+    <string name="duration_zero">00:00</string>
+    <string name="video_proof">व्हिडिओ पुरावा</string>
+
 </resources>
