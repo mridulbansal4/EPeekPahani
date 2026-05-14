@@ -5,13 +5,16 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.navigation.fragment.findNavController
+import androidx.fragment.app.viewModels
+import dagger.hilt.android.AndroidEntryPoint
 import io.sc.eppCordova.databinding.FragmentClaimDetailBinding
 
+@AndroidEntryPoint
 class ClaimDetailFragment : Fragment() {
 
     private var _binding: FragmentClaimDetailBinding? = null
     private val binding get() = _binding!!
+    private val viewModel: MyClaimsViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -23,6 +26,48 @@ class ClaimDetailFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        viewModel.selectedClaim.observe(viewLifecycleOwner) { claim ->
+            if (claim != null) {
+                binding.tvDetail.text = buildString {
+                    appendLine("दावा क्र: ${claim.claimId ?: "-"}")
+                    appendLine()
+                    appendLine("प्रक्रिया स्थिती: ${workflowLabel(claim.workflowStage)}")
+                    appendLine("विश्वास गुण: ${claim.confidenceScore?.let { "$it%" } ?: "-"}")
+                    appendLine("भू-सत्यापन: ${boolLabel(claim.geoVerified)}")
+                    appendLine("पाऊस जुळणी: ${boolLabel(claim.rainfallMatched)}")
+                    appendLine("डुप्लिकेट धोका: ${boolLabel(claim.duplicateRisk)}")
+                    appendLine()
+                    appendLine("नियुक्त अधिकारी: ${claim.assignedOfficer ?: "-"}")
+                    appendLine("पुनरावलोकन: ${claim.reviewRemarks ?: "-"}")
+                    appendLine("भूखंड: ${claim.landParcelId ?: "-"}")
+                    appendLine()
+                    appendLine("DBT स्थिती: ${claim.dbtStatus ?: "-"}")
+                    appendLine("देयक स्थिती: ${claim.paymentStatus ?: "-"}")
+                    appendLine()
+                    appendLine("निर्मिती: ${claim.createdAt ?: "-"}")
+                    appendLine("अद्यतन: ${claim.updatedAt ?: "-"}")
+                }
+            }
+        }
+    }
+
+    private fun workflowLabel(stage: String?): String = when {
+        stage == null -> "नवीन"
+        stage.contains("SUBMITTED", true) -> "Under Verification"
+        stage.contains("GEO_VERIFIED", true) -> "Geo Verification Completed"
+        stage.contains("OFFICER_REVIEW", true) -> "Awaiting Officer Review"
+        stage.contains("DBT_INITIATED", true) -> "DBT Initiated"
+        stage.contains("COMPENSATED", true) || stage.contains("RELEASED", true) ->
+            "Compensation Released"
+        stage.contains("REJECTED", true) -> "Rejected"
+        else -> stage.replace("_", " ")
+    }
+
+    private fun boolLabel(value: Boolean?): String = when (value) {
+        true -> "होय"
+        false -> "नाही"
+        null -> "-"
     }
 
     override fun onDestroyView() {

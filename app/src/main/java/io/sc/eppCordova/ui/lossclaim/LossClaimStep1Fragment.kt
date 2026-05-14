@@ -6,7 +6,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.SeekBar
-import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
@@ -50,7 +49,6 @@ class LossClaimStep1Fragment : Fragment() {
         observeData()
     }
 
-    /** Highlight selected loss type card and deselect previous */
     private fun highlightLossCard(card: MaterialCardView, lossType: String) {
         selectedLossCard?.let {
             it.strokeWidth = resources.getDimensionPixelSize(R.dimen.card_stroke_unselected)
@@ -101,7 +99,7 @@ class LossClaimStep1Fragment : Fragment() {
     private fun setupAreaSlider() {
         binding.seekbarAffectedArea.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                val value = progress / 10.0  // 0–50 maps to 0.0–5.0 hectares
+                val value = progress / 10.0
                 val formatted = String.format("%.1f हेक्टर", value)
                 binding.tvAffectedAreaValue.text = formatted
                 viewModel.affectedArea.value = value
@@ -120,7 +118,6 @@ class LossClaimStep1Fragment : Fragment() {
             binding.acvLossGat.setOnItemClickListener { _, _, position, _ ->
                 val selected = gats[position]
                 viewModel.selectedGat.value = selected
-                // Auto-fill season
                 binding.tvLossSeason.text = "खरीप २०२५ (Auto-filled)"
                 viewModel.generateClaimId("NSK", "NIP", selected.landRecord?.gutNo ?: "000")
             }
@@ -130,6 +127,15 @@ class LossClaimStep1Fragment : Fragment() {
     private fun setupNextButton() {
         binding.btnLossNext.setOnClickListener {
             if (viewModel.validateAndProceed()) {
+                val gat = viewModel.selectedGat.value
+                sharedViewModel.setClaimFormData(
+                    lossType = viewModel.selectedLossType.value ?: "",
+                    incidentDate = viewModel.incidentDate.value ?: "",
+                    affectedAreaHa = viewModel.affectedArea.value ?: 0.0,
+                    gatNumber = gat?.landRecord?.gutNo ?: "",
+                    cropType = gat?.cropRecord?.cropType ?: "",
+                    cropName = gat?.cropRecord?.cropName ?: ""
+                )
                 findNavController().navigate(R.id.action_lossClaimStep1_to_lossClaimStep2)
             } else {
                 Snackbar.make(requireView(), "कृपया सर्व माहिती भरा", Snackbar.LENGTH_SHORT).show()
@@ -139,7 +145,6 @@ class LossClaimStep1Fragment : Fragment() {
 
     private fun observeData() {
         viewModel.weatherCheckResult.observe(viewLifecycleOwner) { result ->
-            // Show weather info in the banner if available
             if (result != null) {
                 binding.layoutWeatherBanner.visibility = View.VISIBLE
             }

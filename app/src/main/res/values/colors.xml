@@ -44,6 +44,8 @@
 
     <!-- Status Badge Colors -->
     <color name="status_verified">#2E7D32</color>
+    <color name="status_green">#2E7D32</color>
+    <color name="status_red">#ba1a1a</color>
     <color name="status_pending">#FFA000</color>
     <color name="status_draft">#707a6f</color>
     

@@ -1,10 +1,13 @@
 package io.sc.eppCordova.ui.lossclaim
 
+import android.net.Uri
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import io.sc.eppCordova.data.repository.ApiResult
+import io.sc.eppCordova.data.repository.UploadRepository
 import io.sc.eppCordova.domain.model.AiFrameRecord
 import io.sc.eppCordova.domain.model.GpsPoint
 import io.sc.eppCordova.domain.model.VideoClipRecord
@@ -17,8 +20,17 @@ import kotlin.random.Random
 
 enum class SurveyMode { ONLINE, OFFLINE }
 
+sealed class UploadState {
+    object Idle : UploadState()
+    object Uploading : UploadState()
+    data class Success(val url: String) : UploadState()
+    data class Error(val message: String) : UploadState()
+}
+
 @HiltViewModel
-class LossClaimStep3ViewModel @Inject constructor() : ViewModel() {
+class LossClaimStep3ViewModel @Inject constructor(
+    private val uploadRepository: UploadRepository
+) : ViewModel() {
 
     private val _surveyMode = MutableLiveData<SurveyMode>(SurveyMode.ONLINE)
     val surveyMode: LiveData<SurveyMode> = _surveyMode
@@ -35,6 +47,12 @@ class LossClaimStep3ViewModel @Inject constructor() : ViewModel() {
     private val _gpsTrail = MutableLiveData<MutableList<GpsPoint>>(mutableListOf())
     val gpsTrail: LiveData<MutableList<GpsPoint>> = _gpsTrail
 
+    private val _uploadState = MutableLiveData<UploadState>(UploadState.Idle)
+    val uploadState: LiveData<UploadState> = _uploadState
+
+    private val _uploadedUrls = MutableLiveData<MutableList<String>>(mutableListOf())
+    val uploadedUrls: LiveData<MutableList<String>> = _uploadedUrls
+
     private var gpsJob: Job? = null
 
     fun setSurveyMode(isOnline: Boolean) {
@@ -45,7 +63,6 @@ class LossClaimStep3ViewModel @Inject constructor() : ViewModel() {
         if (gpsJob?.isActive == true) return
         gpsJob = viewModelScope.launch {
             while (isActive) {
-                // Mock GPS point
                 val lat = 19.9975 + (Random.nextDouble() - 0.5) * 0.001
                 val lon = 73.7898 + (Random.nextDouble() - 0.5) * 0.001
                 val point = GpsPoint(lat, lon, System.currentTimeMillis())
@@ -77,8 +94,7 @@ class LossClaimStep3ViewModel @Inject constructor() : ViewModel() {
         val list = _videoClips.value ?: mutableListOf()
         list.add(clip)
         _videoClips.value = list
-        
-        // Mock AI analysis
+
         if (_surveyMode.value == SurveyMode.ONLINE) {
             val damageClass = listOf("MILD", "MODERATE", "SEVERE").random()
             val damagePct = when(damageClass) {
@@ -87,7 +103,7 @@ class LossClaimStep3ViewModel @Inject constructor() : ViewModel() {
                 else -> Random.nextInt(61, 95)
             }
             val aiFrame = AiFrameRecord(
-                frameUri = uri, // Using video uri as frame uri for mock
+                frameUri = uri,
                 damagePercent = damagePct,
                 damageClass = damageClass,
                 confidence = Random.nextFloat() * 0.2f + 0.75f,
@@ -103,6 +119,28 @@ class LossClaimStep3ViewModel @Inject constructor() : ViewModel() {
         if (step < 6) {
             _currentStep.value = step + 1
         }
+    }
+
+    fun uploadEvidence(uri: Uri) {
+        _uploadState.value = UploadState.Uploading
+        viewModelScope.launch {
+            when (val result = uploadRepository.uploadFile(uri)) {
+                is ApiResult.Success -> {
+                    val url = result.data.url ?: ""
+                    val urls = _uploadedUrls.value ?: mutableListOf()
+                    urls.add(url)
+                    _uploadedUrls.value = urls
+                    _uploadState.value = UploadState.Success(url)
+                }
+                is ApiResult.Error -> {
+                    _uploadState.value = UploadState.Error(result.message)
+                }
+            }
+        }
+    }
+
+    fun resetUploadState() {
+        _uploadState.value = UploadState.Idle
     }
 
     override fun onCleared() {

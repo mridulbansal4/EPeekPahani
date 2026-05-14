@@ -32,6 +32,15 @@ data class GpsData(
     var photo3Uri: String = ""
 )
 
+data class ClaimFormData(
+    var lossType: String = "",
+    var incidentDate: String = "",
+    var affectedAreaHa: Double = 0.0,
+    var gatNumber: String = "",
+    var cropType: String = "",
+    var cropName: String = ""
+)
+
 sealed class UiState {
     object Idle : UiState()
     object Loading : UiState()
@@ -59,6 +68,12 @@ class SharedViewModel @Inject constructor(
 
     private val _submitState = MutableLiveData<UiState>(UiState.Idle)
     val submitState: LiveData<UiState> = _submitState
+
+    private val _claimFormData = MutableLiveData(ClaimFormData())
+    val claimFormData: LiveData<ClaimFormData> = _claimFormData
+
+    private val _claimEvidenceUris = MutableLiveData<List<String>>(emptyList())
+    val claimEvidenceUris: LiveData<List<String>> = _claimEvidenceUris
 
     fun setFarmer(farmer: Farmer) {
         _farmerState.value = farmer
@@ -131,8 +146,17 @@ class SharedViewModel @Inject constructor(
         cropFormData.value = CropFormData()
         gpsData.value = GpsData()
     }
-    
+
     fun setPhoto1Uri(uri: String) { gpsData.value = gpsData.value?.copy(photo1Uri = uri) }
     fun setPhoto2Uri(uri: String) { gpsData.value = gpsData.value?.copy(photo2Uri = uri) }
     fun setPhoto3Uri(uri: String) { gpsData.value = gpsData.value?.copy(photo3Uri = uri) }
+
+    fun setClaimFormData(lossType: String, incidentDate: String, affectedAreaHa: Double,
+                         gatNumber: String, cropType: String, cropName: String) {
+        _claimFormData.value = ClaimFormData(lossType, incidentDate, affectedAreaHa, gatNumber, cropType, cropName)
+    }
+
+    fun setClaimEvidenceUris(uris: List<String>) {
+        _claimEvidenceUris.value = uris
+    }
 }
