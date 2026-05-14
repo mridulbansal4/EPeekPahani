@@ -59,7 +59,7 @@ class VideoEvidenceViewerActivity : AppCompatActivity() {
         val type = object : TypeToken<List<EvidenceVideo>>() {}.type
         videos = Gson().fromJson(videosJson, type)
 
-        binding.toolbar.setNavigationOnClickListener { finish() }
+        binding.btnClose.setOnClickListener { finish() }
         
         setupPlayer()
         setupRecyclerView()
@@ -95,7 +95,6 @@ class VideoEvidenceViewerActivity : AppCompatActivity() {
             val dateStr = sdf.format(Date(video.timestamp))
             binding.tvOverlayTimestamp.text = dateStr
             binding.tvOverlayLocation.text = villageGat
-            binding.tvOverlayDisaster.text = disasterTypeStr
         }
     }
 
@@ -115,7 +114,6 @@ class VideoEvidenceViewerActivity : AppCompatActivity() {
             val tvVideoTimestamp: TextView = view.findViewById(R.id.tvVideoTimestamp)
             val tvVideoDuration: TextView = view.findViewById(R.id.tvVideoDuration)
             val tvGpsVerified: TextView = view.findViewById(R.id.tvGpsVerified)
-            val tvDisasterType: TextView = view.findViewById(R.id.tvDisasterType)
 
             fun bind(video: EvidenceVideo, position: Int) {
                 tvVideoTitle.text = "Inspection Video ${position + 1}"
@@ -123,7 +121,6 @@ class VideoEvidenceViewerActivity : AppCompatActivity() {
                 val sdf = SimpleDateFormat("dd MMM yyyy · hh:mm a", Locale.getDefault())
                 tvVideoTimestamp.text = sdf.format(Date(video.timestamp))
                 tvVideoDuration.text = "Duration: ${video.durationSeconds}s"
-                tvDisasterType.text = disasterTypeStr
 
                 if (video.gpsVerified) {
                     tvGpsVerified.text = "GPS Verified"

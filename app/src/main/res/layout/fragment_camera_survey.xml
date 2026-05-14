@@ -26,13 +26,13 @@
         android:background="@drawable/bg_gradient_bottom_dark"
         app:layout_constraintBottom_toBottomOf="parent" />
 
-    <!-- Top Header (Transparent Floating) -->
+    <!-- Top Header (Transparent Floating) Assuming transparent status bar -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/topHeader"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:paddingHorizontal="16dp"
-        android:paddingTop="36dp" <!-- Assuming transparent status bar -->
+        android:paddingTop="36dp"
         android:paddingBottom="12dp"
         app:layout_constraintTop_toTopOf="parent">
 
