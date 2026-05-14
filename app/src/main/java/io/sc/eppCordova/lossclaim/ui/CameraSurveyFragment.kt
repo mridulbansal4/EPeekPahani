@@ -20,6 +20,11 @@ import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.video.FileOutputOptions
+import androidx.camera.video.Recorder
+import androidx.camera.video.Recording
+import androidx.camera.video.VideoCapture
+import androidx.camera.video.VideoRecordEvent
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -34,17 +39,15 @@ import io.sc.eppCordova.lossclaim.domain.model.QuestionType
 import io.sc.eppCordova.lossclaim.domain.model.SurveyStage
 import io.sc.eppCordova.lossclaim.viewmodel.LossClaimViewModel
 import io.sc.eppCordova.utils.ImageUtils
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import androidx.camera.video.FileOutputOptions
-import androidx.camera.video.Recorder
-import androidx.camera.video.Recording
-import androidx.camera.video.VideoCapture
-import androidx.camera.video.VideoRecordEvent
-import androidx.core.util.Consumer
 import java.io.File
 import java.util.Locale
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import android.content.res.ColorStateList
+import android.graphics.Color
 
 class CameraSurveyFragment : Fragment() {
 
@@ -61,9 +64,11 @@ class CameraSurveyFragment : Fragment() {
     private var tts: TextToSpeech? = null
     private var speechRecognizer: SpeechRecognizer? = null
     
-    // Simulate audio recording
-    private var isRecording = false
+    private var isRecordingAudio = false
+    private var isRecordingVideo = false
     private var currentPromptId: String? = null
+    private var recordingTimerJob: Job? = null
+    private var secondsRecorded = 0
 
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -106,10 +111,12 @@ class CameraSurveyFragment : Fragment() {
             override fun onBufferReceived(buffer: ByteArray?) {}
             override fun onEndOfSpeech() {}
             override fun onError(error: Int) {
-                isRecording = false
+                isRecordingAudio = false
+                stopRecordingTimer()
                 binding.btnNextStep.visibility = View.VISIBLE
                 binding.progressBarAi.visibility = View.GONE
-                binding.btnNextStep.text = "Hold to Speak"
+                binding.btnNextStep.text = "Start Audio"
+                binding.btnNextStep.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.gov_green))
                 val errorMsg = when (error) {
                     SpeechRecognizer.ERROR_AUDIO -> "Audio recording error"
                     SpeechRecognizer.ERROR_CLIENT -> "Client side error"
@@ -126,8 +133,10 @@ class CameraSurveyFragment : Fragment() {
             }
 
             override fun onResults(results: Bundle?) {
-                isRecording = false
-                binding.btnNextStep.text = "Hold to Speak"
+                isRecordingAudio = false
+                stopRecordingTimer()
+                binding.btnNextStep.text = "Start Audio"
+                binding.btnNextStep.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.gov_green))
                 val matches = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
                 if (!matches.isNullOrEmpty()) {
                     val transcript = matches[0]
@@ -156,6 +165,10 @@ class CameraSurveyFragment : Fragment() {
             ))
         }
 
+        viewModel.currentFarmer.observe(viewLifecycleOwner) { farmer ->
+            binding.tvFarmerDetails.text = "Farmer: ${farmer?.name ?: "Unknown"}"
+        }
+
         viewModel.startSurvey()
 
         viewLifecycleOwner.lifecycleScope.launch {
@@ -171,6 +184,7 @@ class CameraSurveyFragment : Fragment() {
                         val prompt = state.currentPrompt
                         binding.tvAiInstruction.text = prompt.textMarathi
                         binding.tvStepProgress.text = "Stage: ${prompt.stage.name.replace("_", " ")}"
+                        binding.tvAiStatusChip.text = "AI Ready"
                         
                         tts?.speak(prompt.textMarathi, TextToSpeech.QUEUE_FLUSH, null, null)
 
@@ -181,6 +195,8 @@ class CameraSurveyFragment : Fragment() {
                         binding.progressBarAi.visibility = View.GONE
                         binding.btnNextStep.visibility = View.VISIBLE
                         binding.btnNextStep.setOnTouchListener(null)
+                        binding.btnNextStep.setOnClickListener(null)
+                        binding.btnNextStep.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.gov_green))
                         
                         val prettyMissing = state.missingEvidence.joinToString(", ") {
                             it.replace("_", " ").replaceFirstChar { c -> c.uppercase() }
@@ -196,6 +212,7 @@ class CameraSurveyFragment : Fragment() {
                         binding.progressBarAi.visibility = View.GONE
                         binding.btnNextStep.visibility = View.VISIBLE
                         binding.btnNextStep.setOnTouchListener(null)
+                        binding.btnNextStep.setOnClickListener(null)
                         binding.tvAiInstruction.text = "Survey completed successfully. Generating package..."
                         viewModel.generateEvidencePackage()
                         findNavController().navigate(R.id.action_camera_to_processing)
@@ -209,6 +226,10 @@ class CameraSurveyFragment : Fragment() {
         // Clear previous listeners to prevent overlap
         binding.btnNextStep.setOnClickListener(null)
         binding.btnNextStep.setOnTouchListener(null)
+        binding.btnNextStep.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.gov_green))
+        isRecordingVideo = false
+        isRecordingAudio = false
+        stopRecordingTimer()
         
         when (type) {
             QuestionType.CAPTURE_PHOTO -> {
@@ -216,44 +237,34 @@ class CameraSurveyFragment : Fragment() {
                 binding.btnNextStep.setOnClickListener { takePhoto() }
             }
             QuestionType.CAPTURE_VIDEO -> {
-                binding.btnNextStep.text = "Hold to Record Video"
-                binding.btnNextStep.setOnTouchListener { _, event ->
-                    when (event.action) {
-                        android.view.MotionEvent.ACTION_DOWN -> {
-                            startVideoRecording()
-                            binding.btnNextStep.text = "Recording..."
-                            true
-                        }
-                        android.view.MotionEvent.ACTION_UP, android.view.MotionEvent.ACTION_CANCEL -> {
-                            stopVideoRecording()
-                            true
-                        }
-                        else -> false
+                binding.btnNextStep.text = "Start Video"
+                binding.btnNextStep.setOnClickListener {
+                    if (!isRecordingVideo) {
+                        startVideoRecording()
+                        binding.btnNextStep.text = "Stop Recording"
+                        binding.btnNextStep.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#F44336"))
+                        isRecordingVideo = true
+                    } else {
+                        stopVideoRecording()
+                        binding.btnNextStep.text = "Start Video"
+                        binding.btnNextStep.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.gov_green))
+                        isRecordingVideo = false
                     }
                 }
             }
             QuestionType.VERBAL_CONFIRM -> {
-                binding.btnNextStep.text = "Hold to Speak"
-                binding.btnNextStep.setOnTouchListener { _, event ->
-                    when (event.action) {
-                        android.view.MotionEvent.ACTION_DOWN -> {
-                            startRecording(promptId)
-                            binding.btnNextStep.text = "Listening..."
-                            true
-                        }
-                        android.view.MotionEvent.ACTION_UP, android.view.MotionEvent.ACTION_CANCEL -> {
-                            if (isRecording) {
-                                binding.btnNextStep.visibility = View.INVISIBLE
-                                binding.progressBarAi.visibility = View.VISIBLE
-                                stopRecording()
-                            } else {
-                                binding.btnNextStep.visibility = View.VISIBLE
-                                binding.progressBarAi.visibility = View.GONE
-                                binding.btnNextStep.text = "Hold to Speak"
-                            }
-                            true
-                        }
-                        else -> false
+                binding.btnNextStep.text = "Start Audio"
+                binding.btnNextStep.setOnClickListener {
+                    if (!isRecordingAudio) {
+                        startRecording(promptId)
+                        binding.btnNextStep.text = "Stop Audio"
+                        binding.btnNextStep.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#F44336"))
+                        isRecordingAudio = true
+                    } else {
+                        binding.btnNextStep.visibility = View.INVISIBLE
+                        binding.progressBarAi.visibility = View.VISIBLE
+                        stopRecording()
+                        isRecordingAudio = false
                     }
                 }
             }
@@ -268,19 +279,43 @@ class CameraSurveyFragment : Fragment() {
         }
     }
 
+    private fun startRecordingTimer() {
+        binding.layoutRecordingStatus.visibility = View.VISIBLE
+        secondsRecorded = 0
+        updateTimerText()
+        recordingTimerJob = viewLifecycleOwner.lifecycleScope.launch {
+            while(true) {
+                delay(1000)
+                secondsRecorded++
+                updateTimerText()
+            }
+        }
+    }
+
+    private fun stopRecordingTimer() {
+        recordingTimerJob?.cancel()
+        binding.layoutRecordingStatus.visibility = View.GONE
+    }
+
+    private fun updateTimerText() {
+        val mins = secondsRecorded / 60
+        val secs = secondsRecorded % 60
+        binding.tvRecordingTimer.text = String.format("%02d:%02d", mins, secs)
+    }
+
     private fun startRecording(promptId: String) {
-        isRecording = true
         currentPromptId = promptId
         val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "mr-IN")
         speechRecognizer?.startListening(intent)
+        startRecordingTimer()
+        Toast.makeText(requireContext(), "Audio Recording Started", Toast.LENGTH_SHORT).show()
     }
 
     private fun stopRecording() {
-        if (isRecording) {
-            speechRecognizer?.stopListening()
-        }
+        speechRecognizer?.stopListening()
+        stopRecordingTimer()
     }
 
     @SuppressLint("MissingPermission")
@@ -295,9 +330,11 @@ class CameraSurveyFragment : Fragment() {
             .start(ContextCompat.getMainExecutor(requireContext())) { recordEvent ->
                 when(recordEvent) {
                     is VideoRecordEvent.Start -> {
-                        // Recording started
+                        startRecordingTimer()
+                        Toast.makeText(requireContext(), "Video Recording Started", Toast.LENGTH_SHORT).show()
                     }
                     is VideoRecordEvent.Finalize -> {
+                        stopRecordingTimer()
                         if (!recordEvent.hasError()) {
                             val durationSecs = ((System.currentTimeMillis() - videoRecordingStart) / 1000).toInt()
                             val lat = viewModel.currentLocation.value?.latitude ?: 0.0
@@ -306,6 +343,7 @@ class CameraSurveyFragment : Fragment() {
                             Toast.makeText(requireContext(), "Video saved. AI is analyzing...", Toast.LENGTH_SHORT).show()
                             binding.btnNextStep.visibility = View.INVISIBLE
                             binding.progressBarAi.visibility = View.VISIBLE
+                            binding.tvAiStatusChip.text = "AI Analyzing"
                             
                             viewModel.processCapturedVideo(videoFile.absolutePath, durationSecs)
                         } else {
@@ -313,7 +351,9 @@ class CameraSurveyFragment : Fragment() {
                             recording = null
                             Toast.makeText(requireContext(), "Video capture failed", Toast.LENGTH_SHORT).show()
                             binding.btnNextStep.isEnabled = true
-                            binding.btnNextStep.text = "Hold to Record Video"
+                            binding.btnNextStep.text = "Start Video"
+                            binding.btnNextStep.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.gov_green))
+                            isRecordingVideo = false
                         }
                     }
                 }
@@ -366,6 +406,7 @@ class CameraSurveyFragment : Fragment() {
                     Toast.makeText(requireContext(), "Photo saved. AI is analyzing...", Toast.LENGTH_SHORT).show()
                     binding.btnNextStep.visibility = View.INVISIBLE
                     binding.progressBarAi.visibility = View.VISIBLE
+                    binding.tvAiStatusChip.text = "AI Analyzing"
                     
                     viewModel.processCapturedPhoto(photoFile.absolutePath)
                 }
