@@ -119,11 +119,11 @@ class CameraSurveyFragment : Fragment() {
             
             // Apply margins considering the system bars
             val titleParams = binding.tvScreenTitle.layoutParams as ViewGroup.MarginLayoutParams
-            titleParams.topMargin = insets.top + (24 * density).toInt()
+            titleParams.topMargin = insets.top + (12 * density).toInt()
             binding.tvScreenTitle.layoutParams = titleParams
             
             val timerParams = binding.layoutRecordingStatus.layoutParams as ViewGroup.MarginLayoutParams
-            timerParams.topMargin = insets.top + (24 * density).toInt()
+            timerParams.topMargin = insets.top + (12 * density).toInt()
             binding.layoutRecordingStatus.layoutParams = timerParams
             
             val fabParams = binding.btnPrimaryAction.layoutParams as ViewGroup.MarginLayoutParams
