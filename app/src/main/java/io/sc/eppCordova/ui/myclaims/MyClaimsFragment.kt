@@ -54,7 +54,8 @@ class MyClaimsFragment : Fragment() {
 
         val adapter = ClaimAdapter { claim ->
             viewModel.selectClaim(claim)
-            findNavController().navigate(R.id.action_myClaims_to_claimDetail)
+            // findNavController().navigate(R.id.action_myClaims_to_claimDetail)
+            android.widget.Toast.makeText(requireContext(), "Claim Detail selected", android.widget.Toast.LENGTH_SHORT).show()
         }
         rv.adapter = adapter
 

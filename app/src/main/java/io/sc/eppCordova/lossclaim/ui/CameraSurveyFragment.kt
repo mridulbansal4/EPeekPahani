@@ -2,9 +2,13 @@ package io.sc.eppCordova.lossclaim.ui
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Bundle
+import android.speech.RecognitionListener
+import android.speech.RecognizerIntent
+import android.speech.SpeechRecognizer
 import android.speech.tts.TextToSpeech
 import android.view.LayoutInflater
 import android.view.View
@@ -31,6 +35,12 @@ import io.sc.eppCordova.lossclaim.domain.model.SurveyStage
 import io.sc.eppCordova.lossclaim.viewmodel.LossClaimViewModel
 import io.sc.eppCordova.utils.ImageUtils
 import kotlinx.coroutines.launch
+import androidx.camera.video.FileOutputOptions
+import androidx.camera.video.Recorder
+import androidx.camera.video.Recording
+import androidx.camera.video.VideoCapture
+import androidx.camera.video.VideoRecordEvent
+import androidx.core.util.Consumer
 import java.io.File
 import java.util.Locale
 import java.util.concurrent.ExecutorService
@@ -43,13 +53,17 @@ class CameraSurveyFragment : Fragment() {
     private val viewModel: LossClaimViewModel by activityViewModels()
 
     private var imageCapture: ImageCapture? = null
+    private var videoCapture: VideoCapture<Recorder>? = null
+    private var recording: Recording? = null
+    private var videoRecordingStart: Long = 0
     private lateinit var cameraExecutor: ExecutorService
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private var tts: TextToSpeech? = null
+    private var speechRecognizer: SpeechRecognizer? = null
     
     // Simulate audio recording
     private var isRecording = false
-    private var currentAudioFile: File? = null
+    private var currentPromptId: String? = null
 
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -83,6 +97,53 @@ class CameraSurveyFragment : Fragment() {
                 tts?.language = Locale("mr", "IN") // Marathi by default
             }
         }
+        
+        speechRecognizer = SpeechRecognizer.createSpeechRecognizer(requireContext())
+        speechRecognizer?.setRecognitionListener(object : RecognitionListener {
+            override fun onReadyForSpeech(params: Bundle?) {}
+            override fun onBeginningOfSpeech() {}
+            override fun onRmsChanged(rmsdB: Float) {}
+            override fun onBufferReceived(buffer: ByteArray?) {}
+            override fun onEndOfSpeech() {}
+            override fun onError(error: Int) {
+                isRecording = false
+                binding.btnNextStep.visibility = View.VISIBLE
+                binding.progressBarAi.visibility = View.GONE
+                binding.btnNextStep.text = "Hold to Speak"
+                val errorMsg = when (error) {
+                    SpeechRecognizer.ERROR_AUDIO -> "Audio recording error"
+                    SpeechRecognizer.ERROR_CLIENT -> "Client side error"
+                    SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS -> "Insufficient permissions"
+                    SpeechRecognizer.ERROR_NETWORK -> "Network error"
+                    SpeechRecognizer.ERROR_NETWORK_TIMEOUT -> "Network timeout"
+                    SpeechRecognizer.ERROR_NO_MATCH -> "No speech matched"
+                    SpeechRecognizer.ERROR_RECOGNIZER_BUSY -> "RecognitionService busy"
+                    SpeechRecognizer.ERROR_SERVER -> "Error from server"
+                    SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> "No speech input"
+                    else -> "Didn't understand, please try again."
+                }
+                Toast.makeText(requireContext(), errorMsg, Toast.LENGTH_SHORT).show()
+            }
+
+            override fun onResults(results: Bundle?) {
+                isRecording = false
+                binding.btnNextStep.text = "Hold to Speak"
+                val matches = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
+                if (!matches.isNullOrEmpty()) {
+                    val transcript = matches[0]
+                    currentPromptId?.let { id ->
+                        val text = (viewModel.surveyState.value as? SurveyState.Active)?.currentPrompt?.textMarathi ?: "Unknown question"
+                        viewModel.processVoiceResponse(transcript, id, text)
+                    }
+                } else {
+                    // Reset UI if no match
+                    binding.btnNextStep.visibility = View.VISIBLE
+                    binding.progressBarAi.visibility = View.GONE
+                }
+            }
+            override fun onPartialResults(partialResults: Bundle?) {}
+            override fun onEvent(eventType: Int, params: Bundle?) {}
+        })
 
         if (allPermissionsGranted()) {
             startCamera()
@@ -102,6 +163,11 @@ class CameraSurveyFragment : Fragment() {
                 when (state) {
                     is SurveyState.Idle -> { }
                     is SurveyState.Active -> {
+                        // Hide loader, show button
+                        binding.progressBarAi.visibility = View.GONE
+                        binding.btnNextStep.visibility = View.VISIBLE
+                        binding.btnNextStep.isEnabled = true
+                        
                         val prompt = state.currentPrompt
                         binding.tvAiInstruction.text = prompt.textMarathi
                         binding.tvStepProgress.text = "Stage: ${prompt.stage.name.replace("_", " ")}"
@@ -111,7 +177,15 @@ class CameraSurveyFragment : Fragment() {
                         setupInputMode(prompt.type, prompt.id)
                     }
                     is SurveyState.Reviewing -> {
-                        binding.tvAiInstruction.text = "Some evidence is missing: ${state.missingEvidence.joinToString()}. Please review."
+                        // Force UI reset immediately
+                        binding.progressBarAi.visibility = View.GONE
+                        binding.btnNextStep.visibility = View.VISIBLE
+                        binding.btnNextStep.setOnTouchListener(null)
+                        
+                        val prettyMissing = state.missingEvidence.joinToString(", ") {
+                            it.replace("_", " ").replaceFirstChar { c -> c.uppercase() }
+                        }
+                        binding.tvAiInstruction.text = "Missing Evidence:\n$prettyMissing\n\nPlease review."
                         binding.btnNextStep.text = "Finish Anyway"
                         binding.btnNextStep.setOnClickListener {
                             viewModel.generateEvidencePackage()
@@ -119,6 +193,9 @@ class CameraSurveyFragment : Fragment() {
                         }
                     }
                     is SurveyState.Completed -> {
+                        binding.progressBarAi.visibility = View.GONE
+                        binding.btnNextStep.visibility = View.VISIBLE
+                        binding.btnNextStep.setOnTouchListener(null)
                         binding.tvAiInstruction.text = "Survey completed successfully. Generating package..."
                         viewModel.generateEvidencePackage()
                         findNavController().navigate(R.id.action_camera_to_processing)
@@ -129,23 +206,51 @@ class CameraSurveyFragment : Fragment() {
     }
 
     private fun setupInputMode(type: QuestionType, promptId: String) {
+        // Clear previous listeners to prevent overlap
+        binding.btnNextStep.setOnClickListener(null)
+        binding.btnNextStep.setOnTouchListener(null)
+        
         when (type) {
             QuestionType.CAPTURE_PHOTO -> {
                 binding.btnNextStep.text = "Capture Photo"
                 binding.btnNextStep.setOnClickListener { takePhoto() }
+            }
+            QuestionType.CAPTURE_VIDEO -> {
+                binding.btnNextStep.text = "Hold to Record Video"
+                binding.btnNextStep.setOnTouchListener { _, event ->
+                    when (event.action) {
+                        android.view.MotionEvent.ACTION_DOWN -> {
+                            startVideoRecording()
+                            binding.btnNextStep.text = "Recording..."
+                            true
+                        }
+                        android.view.MotionEvent.ACTION_UP, android.view.MotionEvent.ACTION_CANCEL -> {
+                            stopVideoRecording()
+                            true
+                        }
+                        else -> false
+                    }
+                }
             }
             QuestionType.VERBAL_CONFIRM -> {
                 binding.btnNextStep.text = "Hold to Speak"
                 binding.btnNextStep.setOnTouchListener { _, event ->
                     when (event.action) {
                         android.view.MotionEvent.ACTION_DOWN -> {
-                            startRecording()
+                            startRecording(promptId)
                             binding.btnNextStep.text = "Listening..."
                             true
                         }
-                        android.view.MotionEvent.ACTION_UP -> {
-                            stopRecording(promptId)
-                            binding.btnNextStep.text = "Processing Voice..."
+                        android.view.MotionEvent.ACTION_UP, android.view.MotionEvent.ACTION_CANCEL -> {
+                            if (isRecording) {
+                                binding.btnNextStep.visibility = View.INVISIBLE
+                                binding.progressBarAi.visibility = View.VISIBLE
+                                stopRecording()
+                            } else {
+                                binding.btnNextStep.visibility = View.VISIBLE
+                                binding.progressBarAi.visibility = View.GONE
+                                binding.btnNextStep.text = "Hold to Speak"
+                            }
                             true
                         }
                         else -> false
@@ -163,18 +268,61 @@ class CameraSurveyFragment : Fragment() {
         }
     }
 
-    private fun startRecording() {
+    private fun startRecording(promptId: String) {
         isRecording = true
-        currentAudioFile = File(requireContext().cacheDir, "audio_${System.currentTimeMillis()}.wav")
-        // Normally start MediaRecorder here
+        currentPromptId = promptId
+        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "mr-IN")
+        speechRecognizer?.startListening(intent)
     }
 
-    private fun stopRecording(promptId: String) {
-        isRecording = false
-        // Normally stop MediaRecorder here
-        currentAudioFile?.let {
-            viewModel.processAudioResponse(it, promptId)
+    private fun stopRecording() {
+        if (isRecording) {
+            speechRecognizer?.stopListening()
         }
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun startVideoRecording() {
+        val videoCapture = this.videoCapture ?: return
+        val videoFile = File(requireContext().externalMediaDirs.firstOrNull(), "evidence_video_${System.currentTimeMillis()}.mp4")
+        val outputOptions = FileOutputOptions.Builder(videoFile).build()
+
+        videoRecordingStart = System.currentTimeMillis()
+        recording = videoCapture.output
+            .prepareRecording(requireContext(), outputOptions)
+            .start(ContextCompat.getMainExecutor(requireContext())) { recordEvent ->
+                when(recordEvent) {
+                    is VideoRecordEvent.Start -> {
+                        // Recording started
+                    }
+                    is VideoRecordEvent.Finalize -> {
+                        if (!recordEvent.hasError()) {
+                            val durationSecs = ((System.currentTimeMillis() - videoRecordingStart) / 1000).toInt()
+                            val lat = viewModel.currentLocation.value?.latitude ?: 0.0
+                            val lon = viewModel.currentLocation.value?.longitude ?: 0.0
+                            
+                            Toast.makeText(requireContext(), "Video saved. AI is analyzing...", Toast.LENGTH_SHORT).show()
+                            binding.btnNextStep.visibility = View.INVISIBLE
+                            binding.progressBarAi.visibility = View.VISIBLE
+                            
+                            viewModel.processCapturedVideo(videoFile.absolutePath, durationSecs)
+                        } else {
+                            recording?.close()
+                            recording = null
+                            Toast.makeText(requireContext(), "Video capture failed", Toast.LENGTH_SHORT).show()
+                            binding.btnNextStep.isEnabled = true
+                            binding.btnNextStep.text = "Hold to Record Video"
+                        }
+                    }
+                }
+            }
+    }
+
+    private fun stopVideoRecording() {
+        recording?.stop()
+        recording = null
     }
 
     @SuppressLint("MissingPermission")
@@ -213,9 +361,13 @@ class CameraSurveyFragment : Fragment() {
                     val disaster = viewModel.selectedDamageType.value
 
                     ImageUtils.addGeoWatermark(photoFile, lat, lon, gat, disaster)
-                    viewModel.processCapturedPhoto(photoFile.absolutePath)
                     
-                    binding.btnNextStep.isEnabled = true
+                    // UI Acknowledgement
+                    Toast.makeText(requireContext(), "Photo saved. AI is analyzing...", Toast.LENGTH_SHORT).show()
+                    binding.btnNextStep.visibility = View.INVISIBLE
+                    binding.progressBarAi.visibility = View.VISIBLE
+                    
+                    viewModel.processCapturedPhoto(photoFile.absolutePath)
                 }
             }
         )
@@ -229,11 +381,15 @@ class CameraSurveyFragment : Fragment() {
                 it.setSurfaceProvider(binding.viewFinder.surfaceProvider)
             }
             imageCapture = ImageCapture.Builder().build()
+            
+            val recorder = Recorder.Builder().build()
+            videoCapture = VideoCapture.withOutput(recorder)
+
             val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
 
             try {
                 cameraProvider.unbindAll()
-                cameraProvider.bindToLifecycle(viewLifecycleOwner, cameraSelector, preview, imageCapture)
+                cameraProvider.bindToLifecycle(viewLifecycleOwner, cameraSelector, preview, imageCapture, videoCapture)
             } catch (exc: Exception) {
                 // Ignore
             }

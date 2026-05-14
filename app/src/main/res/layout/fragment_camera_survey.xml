@@ -10,34 +10,6 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <!-- AI Voice Indicator / Header -->
-    <LinearLayout
-        android:id="@+id/layoutAiHeader"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="#99000000"
-        android:orientation="horizontal"
-        android:padding="16dp"
-        app:layout_constraintTop_toTopOf="parent">
-
-        <ImageView
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:src="@android:drawable/ic_btn_speak_now"
-            app:tint="@color/gov_green" />
-
-        <TextView
-            android:id="@+id/tvAiInstruction"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_marginStart="16dp"
-            android:text="AI Assistant is analysing..."
-            android:textColor="@color/white"
-            android:textSize="18sp"
-            android:textStyle="bold" />
-    </LinearLayout>
-
     <!-- Scan overlay -->
     <View
         android:id="@+id/scanOverlay"
@@ -48,7 +20,7 @@
         app:layout_constraintBottom_toTopOf="@id/layoutQuestions"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/layoutAiHeader" />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <!-- Progress Step -->
     <TextView
@@ -66,7 +38,37 @@
         android:textSize="14sp"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/layoutAiHeader" />
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- AI Voice Indicator / Header (Moved above questions) -->
+    <LinearLayout
+        android:id="@+id/layoutAiHeader"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#E6000000"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        app:layout_constraintBottom_toTopOf="@id/layoutQuestions">
+
+        <ImageView
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@android:drawable/ic_btn_speak_now"
+            app:tint="@color/gov_green" />
+
+        <TextView
+            android:id="@+id/tvAiInstruction"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="16dp"
+            android:text="AI Assistant is analysing..."
+            android:textColor="@color/white"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:maxLines="4"
+            android:ellipsize="end"/>
+    </LinearLayout>
 
     <!-- Questions Overlay Container -->
     <LinearLayout
@@ -85,7 +87,6 @@
             android:layout_height="wrap_content"
             android:minHeight="120dp">
             
-            <!-- Default "Next" Button for orientation steps -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnNextStep"
                 android:layout_width="match_parent"
@@ -96,6 +97,15 @@
                 app:cornerRadius="32dp"
                 app:icon="@drawable/ic_arrow_forward"
                 app:iconGravity="textEnd" />
+
+            <ProgressBar
+                android:id="@+id/progressBarAi"
+                style="?android:attr/progressBarStyle"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_gravity="center"
+                android:visibility="gone"
+                android:indeterminateTint="@color/white" />
 
         </FrameLayout>
 

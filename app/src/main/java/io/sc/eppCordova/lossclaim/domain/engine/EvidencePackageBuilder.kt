@@ -15,6 +15,7 @@ class EvidencePackageBuilder @Inject constructor(
         gatNumber: String,
         disasterType: DisasterType,
         photos: List<EvidencePhoto>,
+        videos: List<EvidenceVideo>,
         voiceInteractions: List<VoiceInteraction>,
         observations: List<AiObservation>,
         surveyDurationSeconds: Long,
@@ -31,8 +32,8 @@ class EvidencePackageBuilder @Inject constructor(
         val completenessScore = confidenceEngine.calculateCompleteness(disasterType, observations, farmerAnswers)
         
         // Simple damage estimation heuristic based on verbal answers
-        val damageStr = farmerAnswers["damage_percentage"] as? String ?: "0"
-        val estimatedDamage = damageStr.toIntOrNull() ?: calculateEstimatedDamage(observations)
+        val damageVal = farmerAnswers["damage_percentage"]?.toString()?.toIntOrNull()
+        val estimatedDamage = damageVal ?: calculateEstimatedDamage(observations)
 
         val recommendation = when {
             fraudAnalysis.autoReject -> "AUTO_REJECT_FRAUD"
@@ -46,6 +47,7 @@ class EvidencePackageBuilder @Inject constructor(
             gatNumber = gatNumber,
             disasterType = disasterType,
             photos = photos,
+            videos = videos,
             voiceInteractions = voiceInteractions,
             observations = observations,
             fraudAnalysis = fraudAnalysis,

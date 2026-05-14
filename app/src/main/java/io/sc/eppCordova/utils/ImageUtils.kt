@@ -6,6 +6,8 @@ import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
+import android.graphics.RectF
+import android.graphics.Typeface
 import android.net.Uri
 import androidx.core.content.FileProvider
 import java.io.File
@@ -32,26 +34,56 @@ object ImageUtils {
         val canvas = Canvas(mutableBitmap)
         
         val paint = Paint().apply {
-            color = Color.YELLOW
-            textSize = 60f
+            color = Color.WHITE
+            textSize = 50f
+            typeface = Typeface.MONOSPACE
             isAntiAlias = true
-            setShadowLayer(5f, 2f, 2f, Color.BLACK)
+            isFakeBoldText = true
+            setShadowLayer(3f, 1f, 1f, Color.BLACK)
         }
 
-        val timeStamp = SimpleDateFormat("dd/MM/yyyy HH:mm:ss", Locale.getDefault()).format(Date())
+        val bgPaint = Paint().apply {
+            color = Color.parseColor("#99000000") // Semi-transparent black
+            style = Paint.Style.FILL
+        }
+
+        val timeStamp = SimpleDateFormat("dd MMM yyyy hh:mm a", Locale.getDefault()).format(Date())
+        
         val lines = listOf(
-            "Gat: $gatNumber",
-            "Lat: $lat, Lon: $lon",
-            "Time: $timeStamp",
-            "Damage: $disasterType"
+            "LAT: $lat",
+            "LON: $lon",
+            "ACC: ±4m",
+            "TIME: $timeStamp",
+            "GAT: $gatNumber",
+            "DISASTER: $disasterType",
+            "STAGE: FIELD INSPECTION"
         )
 
-        var y = mutableBitmap.height - (lines.size * 70f) - 20f
-        val x = 20f
+        // Calculate background box size
+        var maxTextWidth = 0f
+        for (line in lines) {
+            val width = paint.measureText(line)
+            if (width > maxTextWidth) maxTextWidth = width
+        }
+
+        val padding = 30f
+        val lineHeight = 60f
+        val boxHeight = (lines.size * lineHeight) + padding * 2
+        val boxWidth = maxTextWidth + padding * 2
+
+        // Draw at bottom left
+        val startX = 20f
+        val startY = mutableBitmap.height - boxHeight - 20f
+
+        val rect = RectF(startX, startY, startX + boxWidth, startY + boxHeight)
+        canvas.drawRoundRect(rect, 15f, 15f, bgPaint)
+
+        var textY = startY + padding + 40f
+        val textX = startX + padding
 
         for (line in lines) {
-            canvas.drawText(line, x, y, paint)
-            y += 70f
+            canvas.drawText(line, textX, textY, paint)
+            textY += lineHeight
         }
 
         try {

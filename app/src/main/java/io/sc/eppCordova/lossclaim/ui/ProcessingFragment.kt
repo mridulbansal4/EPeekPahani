@@ -42,13 +42,13 @@ class ProcessingFragment : Fragment() {
                 if (stepIndex < steps.size) {
                     binding.tvProcessStep.text = steps[stepIndex]
                     stepIndex++
-                    handler.postDelayed(this, 1000)
+                    handler.postDelayed(this, 300)
                 } else {
                     findNavController().navigate(R.id.action_processing_to_result)
                 }
             }
         }
-        handler.postDelayed(runnable, 1000)
+        handler.postDelayed(runnable, 300)
     }
 
     override fun onDestroyView() {

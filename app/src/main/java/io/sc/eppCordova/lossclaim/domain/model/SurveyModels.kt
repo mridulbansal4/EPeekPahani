@@ -23,6 +23,7 @@ enum class QuestionType {
     SLIDER,
     OPTIONS,
     CAPTURE_PHOTO,
+    CAPTURE_VIDEO,
     VERBAL_CONFIRM,
     END_SURVEY
 }
@@ -50,8 +51,20 @@ data class EvidencePhoto(
     val isClear: Boolean = true
 )
 
+data class EvidenceVideo(
+    val videoPath: String,
+    val durationSeconds: Int,
+    val latitude: Double,
+    val longitude: Double,
+    val timestamp: Long,
+    val keyframes: List<String> = emptyList(),
+    val observations: List<String> = emptyList(),
+    val gpsVerified: Boolean = true
+)
+
 data class VoiceInteraction(
     val promptId: String,
+    val promptText: String,
     val rawAudioPath: String,
     val transcript: String,
     val extractedSemantics: Map<String, Any>,
@@ -76,6 +89,7 @@ data class EvidencePackage(
     val gatNumber: String,
     val disasterType: DisasterType,
     val photos: List<EvidencePhoto>,
+    val videos: List<EvidenceVideo> = emptyList(),
     val voiceInteractions: List<VoiceInteraction>,
     val observations: List<AiObservation>,
     val fraudAnalysis: FraudAnalysis,

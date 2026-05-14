@@ -25,7 +25,7 @@ class ConversationalSurveyEngine @Inject constructor() {
 
         // Stage 2: Disaster-specific Flow Questions
         // FLOOD
-        AiPrompt("f1", "Show me the lowest area of your field — where water would collect.", "मला तुमच्या शेतातील सर्वात सखल भाग दाखवा — जिथे पाणी साचेल.", "मुझे अपने खेत का सबसे निचला क्षेत्र दिखाएं — जहाँ पानी इकट्ठा होगा।", QuestionType.CAPTURE_PHOTO, SurveyStage.AI_DAMAGE_DETECTION, DisasterType.FLOOD, nextPromptId = "f2"),
+        AiPrompt("f1", "Walk slowly through the field and record a video to show water accumulation.", "शेतात हळू हळू चालत व्हिडिओ काढा जेणेकरून साचलेले पाणी दिसेल.", "खेत में धीरे-धीरे चलते हुए एक वीडियो रिकॉर्ड करें ताकि जमा पानी दिखाई दे।", QuestionType.CAPTURE_VIDEO, SurveyStage.AI_DAMAGE_DETECTION, DisasterType.FLOOD, nextPromptId = "f2"),
         AiPrompt("f2", "Was water above the base of the plants at any point?", "पाणी झाडांच्या मुळाच्या वर होतं का?", "क्या किसी बिंदु पर पानी पौधों के आधार से ऊपर था?", QuestionType.VERBAL_CONFIRM, SurveyStage.AI_DAMAGE_DETECTION, DisasterType.FLOOD, nextPromptId = "f3"),
         AiPrompt("f3", "For how many days was the field flooded?", "शेत किती दिवस पाण्याखाली होतं?", "खेत में कितने दिनों तक पानी भरा रहा?", QuestionType.VERBAL_CONFIRM, SurveyStage.AI_DAMAGE_DETECTION, DisasterType.FLOOD),
 
@@ -35,12 +35,12 @@ class ConversationalSurveyEngine @Inject constructor() {
         AiPrompt("h3", "How large were the hailstones?", "गारा किती मोठ्या होत्या?", "ओले कितने बड़े थे?", QuestionType.VERBAL_CONFIRM, SurveyStage.AI_DAMAGE_DETECTION, DisasterType.HAILSTORM),
 
         // DROUGHT
-        AiPrompt("dr1", "Show me the soil between two rows — I want to see how dry it is.", "मला दोन ओळींमधील माती दाखवा — ती किती कोरडी आहे हे पाहायचंय.", "मुझे दो पंक्तियों के बीच की मिट्टी दिखाएं — मैं देखना चाहता हूं कि यह कितनी सूखी है।", QuestionType.CAPTURE_PHOTO, SurveyStage.AI_DAMAGE_DETECTION, DisasterType.DROUGHT, nextPromptId = "dr2"),
+        AiPrompt("dr1", "Record a close-up video showing the soil cracks and dryness.", "जमिनीतील भेगा आणि कोरडेपणा दाखवणारा जवळून व्हिडिओ काढा.", "मिट्टी की दरारें और सूखापन दिखाते हुए एक क्लोज-अप वीडियो रिकॉर्ड करें।", QuestionType.CAPTURE_VIDEO, SurveyStage.AI_DAMAGE_DETECTION, DisasterType.DROUGHT, nextPromptId = "dr2"),
         AiPrompt("dr2", "Did you try to irrigate? Show me the water source if possible.", "तुम्ही पाणी द्यायचा प्रयत्न केला का? शक्य असल्यास पाण्याचा स्रोत दाखवा.", "क्या आपने सिंचाई करने की कोशिश की? यदि संभव हो तो मुझे जल स्रोत दिखाएं।", QuestionType.CAPTURE_PHOTO, SurveyStage.AI_DAMAGE_DETECTION, DisasterType.DROUGHT, nextPromptId = "dr3"),
         AiPrompt("dr3", "What growth stage is the crop at?", "पीक वाढीच्या कोणत्या अवस्थेत आहे?", "फसल विकास के किस चरण में है?", QuestionType.VERBAL_CONFIRM, SurveyStage.AI_DAMAGE_DETECTION, DisasterType.DROUGHT),
 
         // PEST_ATTACK
-        AiPrompt("p1", "Show me the underside of a few leaves — pests often hide there.", "मला काही पानांची खालची बाजू दाखवा — कीटक अनेकदा तिथे लपलेले असतात.", "मुझे कुछ पत्तियों के नीचे का भाग दिखाएं — कीट अक्सर वहीं छिपे रहते हैं।", QuestionType.CAPTURE_PHOTO, SurveyStage.AI_DAMAGE_DETECTION, DisasterType.PEST_ATTACK, nextPromptId = "p2"),
+        AiPrompt("p1", "Record a video inspecting the underside of the leaves.", "पानांच्या खाली कॅमेरा दाखवत व्हिडिओ काढा.", "पत्तियों के नीचे कैमरे को दिखाते हुए एक वीडियो रिकॉर्ड करें।", QuestionType.CAPTURE_VIDEO, SurveyStage.AI_DAMAGE_DETECTION, DisasterType.PEST_ATTACK, nextPromptId = "p2"),
         AiPrompt("p2", "Can you see the pest itself? Bring the camera very close.", "तुम्हाला कीड दिसतेय का? कॅमेरा अगदी जवळ आणा.", "क्या आप कीट को स्वयं देख सकते हैं? कैमरे को बहुत करीब लाएं।", QuestionType.CAPTURE_PHOTO, SurveyStage.AI_DAMAGE_DETECTION, DisasterType.PEST_ATTACK, nextPromptId = "p3"),
         AiPrompt("p3", "Walk one row slowly so I can count how many plants are affected.", "एका ओळीने हळू चाला जेणेकरून मी किती झाडे बाधित आहेत ते मोजू शकेन.", "एक पंक्ति में धीरे-धीरे चलें ताकि मैं गिन सकूं कि कितने पौधे प्रभावित हैं।", QuestionType.CAPTURE_PHOTO, SurveyStage.AI_DAMAGE_DETECTION, DisasterType.PEST_ATTACK),
 
@@ -50,7 +50,7 @@ class ConversationalSurveyEngine @Inject constructor() {
         AiPrompt("di3", "Which symptom appeared first?", "कोणतं लक्षण पहिलं दिसलं?", "कौन सा लक्षण पहले दिखाई दिया?", QuestionType.VERBAL_CONFIRM, SurveyStage.AI_DAMAGE_DETECTION, DisasterType.DISEASE),
 
         // CYCLONE
-        AiPrompt("c1", "Pan the camera across the whole field so I can count fallen plants.", "संपूर्ण शेतावर कॅमेरा फिरवा जेणेकरून मी पडलेली झाडे मोजू शकेन.", "पूरे खेत में कैमरे को घुमाएं ताकि मैं गिरे हुए पौधों की गिनती कर सकूं।", QuestionType.CAPTURE_PHOTO, SurveyStage.AI_DAMAGE_DETECTION, DisasterType.CYCLONE, nextPromptId = "c2"),
+        AiPrompt("c1", "Record a panoramic video showing the fallen crops.", "संपूर्ण पडलेलं पीक दाखवत व्हिडिओ काढा.", "गिरे हुए पूरे फसल को दिखाते हुए एक पैनोरमिक वीडियो रिकॉर्ड करें।", QuestionType.CAPTURE_VIDEO, SurveyStage.AI_DAMAGE_DETECTION, DisasterType.CYCLONE, nextPromptId = "c2"),
         AiPrompt("c2", "Show me roots of one fallen plant — are they pulled out or stem broken?", "मला एका पडलेल्या झाडाची मुळं दाखवा — ती उपटली आहेत की खोड मोडलंय?", "मुझे एक गिरे हुए पौधे की जड़ें दिखाएं — क्या वे उखड़ी हुई हैं या तना टूटा हुआ है?", QuestionType.CAPTURE_PHOTO, SurveyStage.AI_DAMAGE_DETECTION, DisasterType.CYCLONE),
 
         // Stage 3: Farmer Confirmation

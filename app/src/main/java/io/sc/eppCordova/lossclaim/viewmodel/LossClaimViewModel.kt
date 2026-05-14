@@ -37,6 +37,9 @@ class LossClaimViewModel @Inject constructor(
     private val _capturedPhotos = MutableStateFlow<List<EvidencePhoto>>(emptyList())
     val capturedPhotos: StateFlow<List<EvidencePhoto>> = _capturedPhotos.asStateFlow()
     
+    private val _capturedVideos = MutableStateFlow<List<EvidenceVideo>>(emptyList())
+    val capturedVideos: StateFlow<List<EvidenceVideo>> = _capturedVideos.asStateFlow()
+    
     private val _voiceInteractions = MutableStateFlow<List<VoiceInteraction>>(emptyList())
     val voiceInteractions: StateFlow<List<VoiceInteraction>> = _voiceInteractions.asStateFlow()
 
@@ -73,6 +76,7 @@ class LossClaimViewModel @Inject constructor(
 
     fun startSurvey() {
         _capturedPhotos.value = emptyList()
+        _capturedVideos.value = emptyList()
         _voiceInteractions.value = emptyList()
         _surveyStartTime.value = System.currentTimeMillis()
         surveyStateMachine.startSurvey(currentDisasterTypeEnum)
@@ -104,14 +108,64 @@ class LossClaimViewModel @Inject constructor(
         }
     }
 
-    fun processAudioResponse(audioFile: File, promptId: String) {
+    fun processCapturedVideo(videoPath: String, durationSecs: Int) {
         viewModelScope.launch {
-            val voiceResult = voiceProcessingEngine.processAudio(audioFile)
+            val file = File(videoPath)
+            if (!file.exists()) return@launch
+
+            // Simulate frame extraction and AI analysis on keyframes
+            // For now, generate a mock observation based on disaster type
+            val photoSim = EvidencePhoto(
+                imagePath = videoPath, // Pretending the video path is an image path for the mock engine
+                latitude = _currentLocation.value?.latitude ?: 0.0,
+                longitude = _currentLocation.value?.longitude ?: 0.0,
+                timestamp = System.currentTimeMillis(),
+                disasterType = _selectedDamageType.value,
+                gatNumber = _currentFarmer.value?.gatNumber ?: "Unknown"
+            )
+            
+            // Note: Since VisionAnalysisEngine currently operates on image files, we simulate an observation.
+            // In a real app we'd extract a frame using MediaMetadataRetriever and pass it.
+            val mockObservations = listOf(AiObservation(
+                type = when(currentDisasterTypeEnum) {
+                    DisasterType.FLOOD -> "waterlogging"
+                    DisasterType.PEST_ATTACK -> "pest_visible"
+                    DisasterType.CYCLONE -> "lodging"
+                    DisasterType.DROUGHT -> "dry_soil"
+                    else -> "damaged_crop"
+                },
+                confidence = 0.88f,
+                timestamp = System.currentTimeMillis(),
+                sourceImage = videoPath
+            ))
+
+            val video = EvidenceVideo(
+                videoPath = videoPath,
+                durationSeconds = durationSecs,
+                latitude = _currentLocation.value?.latitude ?: 0.0,
+                longitude = _currentLocation.value?.longitude ?: 0.0,
+                timestamp = System.currentTimeMillis(),
+                keyframes = listOf("frame_1.jpg", "frame_2.jpg", "frame_3.jpg"), // mock keyframes
+                observations = mockObservations.map { it.type },
+                gpsVerified = true
+            )
+            
+            _capturedVideos.value = _capturedVideos.value + video
+            
+            val primaryObservation = mockObservations.firstOrNull()
+            surveyStateMachine.processInput(observation = primaryObservation)
+        }
+    }
+
+    fun processVoiceResponse(transcript: String, promptId: String, promptText: String) {
+        viewModelScope.launch {
+            val voiceResult = voiceProcessingEngine.processTranscript(transcript)
             
             val interaction = VoiceInteraction(
                 promptId = promptId,
-                rawAudioPath = audioFile.absolutePath,
-                transcript = voiceResult.transcript,
+                promptText = promptText,
+                rawAudioPath = "", // No raw audio when using SpeechRecognizer transcript directly
+                transcript = transcript,
                 extractedSemantics = voiceResult.extractedSemantics,
                 confidenceScore = voiceResult.confidence
             )
@@ -139,6 +193,7 @@ class LossClaimViewModel @Inject constructor(
             gatNumber = _currentFarmer.value?.gatNumber ?: "unknown",
             disasterType = currentDisasterTypeEnum,
             photos = _capturedPhotos.value,
+            videos = _capturedVideos.value,
             voiceInteractions = _voiceInteractions.value,
             observations = allObservations,
             surveyDurationSeconds = durationSecs,

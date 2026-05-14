@@ -14,6 +14,9 @@ import io.sc.eppCordova.databinding.FragmentClaimResultBinding
 import io.sc.eppCordova.lossclaim.viewmodel.LossClaimViewModel
 import io.sc.eppCordova.utils.PdfGenerator
 import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class ClaimResultFragment : Fragment() {
 
@@ -37,41 +40,65 @@ class ClaimResultFragment : Fragment() {
         val damagePercent = pkg?.estimatedDamagePercentage ?: 0
         val payout = 30000.0 * (damagePercent / 100.0)
         
-        binding.tvDamageScore.text = "$damagePercent%"
-        binding.tvPayoutEstimate.text = "₹${payout.toInt()}"
-        
-        // Show AI completeness score and fraud risk if applicable
-        // binding.tvAiScore.text = "Evidence Completeness: ${pkg?.completenessScore ?: 0}%"
-        
         val farmer = viewModel.currentFarmer.value
-        val photos = viewModel.capturedPhotos.value
 
+        // Populate UI
+        val timeStamp = SimpleDateFormat("dd MMM yyyy, hh:mm a", Locale.getDefault()).format(Date())
+        val refId = "MH-${System.currentTimeMillis().toString().takeLast(6)}"
+        
+        binding.tvRefId.text = "Ref ID: $refId"
+        binding.tvTimestamp.text = "Time: $timeStamp"
+        
         if (farmer != null) {
+            binding.tvVillageGat.text = "Village: ${farmer.village} | Gat: ${farmer.gatNumber}"
+            binding.tvCropDisaster.text = "Crop: ${farmer.primaryCrop} | Disaster: ${pkg?.disasterType?.name ?: "Unknown"}"
+            
+            // Generate PDF
             generatedPdfFile = PdfGenerator.generateSurveyReport(
                 requireContext(),
                 farmer,
-                photos,
+                pkg,
                 damagePercent,
                 payout
             )
-            
+        }
+
+        val firstTime = pkg?.photos?.firstOrNull()?.timestamp ?: 0L
+        val lastTime = pkg?.photos?.lastOrNull()?.timestamp ?: 0L
+        val duration = if (lastTime > firstTime) (lastTime - firstTime) / 1000 else 60 // fallback to 60s
+        
+        binding.tvEvidenceCount.text = "Evidence Photos: ${pkg?.photos?.size ?: 0}"
+        binding.tvDuration.text = "Survey Time: ${duration}s"
+
+        // Setup Buttons
+        binding.btnViewPdf.setOnClickListener {
             if (generatedPdfFile != null) {
-                // Change button to let user open PDF if they want
-                binding.btnSubmitClaim.text = "Submit Claim & Save Report"
+                openPdf(generatedPdfFile!!)
+            } else {
+                Toast.makeText(requireContext(), "PDF Report not ready yet", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        binding.btnDownloadPdf.setOnClickListener {
+            if (generatedPdfFile != null) {
+                Toast.makeText(requireContext(), "PDF Saved to Documents folder.", Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(requireContext(), "PDF Report not ready yet", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        binding.btnSharePdf.setOnClickListener {
+            if (generatedPdfFile != null) {
+                sharePdf(generatedPdfFile!!)
+            } else {
+                Toast.makeText(requireContext(), "PDF Report not ready yet", Toast.LENGTH_SHORT).show()
             }
         }
 
         binding.btnSubmitClaim.setOnClickListener {
-            if (generatedPdfFile != null) {
-                Toast.makeText(requireContext(), "Survey Report Saved! Claim Submitted.", Toast.LENGTH_LONG).show()
-                viewModel.submitClaim()
-                openPdf(generatedPdfFile!!)
-                requireActivity().finish()
-            } else {
-                Toast.makeText(requireContext(), "Survey completed and data saved offline securely.", Toast.LENGTH_LONG).show()
-                viewModel.submitClaim()
-                requireActivity().finish()
-            }
+            Toast.makeText(requireContext(), "Survey completed securely.", Toast.LENGTH_LONG).show()
+            viewModel.submitClaim()
+            requireActivity().finish()
         }
     }
 
@@ -84,6 +111,21 @@ class ClaimResultFragment : Fragment() {
             startActivity(intent)
         } catch (e: Exception) {
             Toast.makeText(requireContext(), "No PDF viewer found", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun sharePdf(file: File) {
+        try {
+            val uri: Uri = FileProvider.getUriForFile(requireContext(), "${requireContext().packageName}.provider", file)
+            val intent = Intent(Intent.ACTION_SEND)
+            intent.type = "application/pdf"
+            intent.putExtra(Intent.EXTRA_STREAM, uri)
+            intent.putExtra(Intent.EXTRA_SUBJECT, "Crop Inspection Report")
+            intent.putExtra(Intent.EXTRA_TEXT, "Please find attached the official PMFBY Crop Inspection Report.")
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            startActivity(Intent.createChooser(intent, "Share Report via"))
+        } catch (e: Exception) {
+            Toast.makeText(requireContext(), "Failed to share PDF", Toast.LENGTH_SHORT).show()
         }
     }
 

@@ -27,7 +27,7 @@ class TFLiteCropDetector @Inject constructor(@ApplicationContext val context: Co
 
     suspend fun detectCrop(bitmap: Bitmap, declaredCrop: String? = null): CropDetectionResult = withContext(Dispatchers.IO) {
         try {
-            Thread.sleep(1500) // Simulate processing time
+            Thread.sleep(300) // Simulate processing time
             
             val cropToReturn = declaredCrop ?: "UNKNOWN"
             val confidence = if (cropToReturn != "UNKNOWN") 0.95f else 0.0f

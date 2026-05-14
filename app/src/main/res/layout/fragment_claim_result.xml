@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/background_color"
@@ -12,9 +13,10 @@
         android:orientation="vertical"
         android:padding="24dp">
 
+        <!-- Top Success Section -->
         <ImageView
-            android:layout_width="64dp"
-            android:layout_height="64dp"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
             android:layout_gravity="center"
             android:src="@drawable/ic_check_circle"
             app:tint="@color/gov_green" />
@@ -24,26 +26,43 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:layout_marginTop="16dp"
-            android:text="Claim Successfully Submitted"
-            android:textColor="@color/gov_green"
+            android:text="Inspection Report Generated"
+            android:textColor="@color/black"
             android:textSize="22sp"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            android:textAlignment="center"/>
 
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
             android:layout_marginTop="8dp"
-            android:text="Reference ID: MH-2026-F98X"
+            android:text="Your AI-assisted crop survey has been securely recorded."
             android:textColor="@color/text_secondary"
-            android:textSize="16sp" />
+            android:textSize="14sp"
+            android:textAlignment="center" />
 
+        <!-- Info Grid -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:orientation="vertical"
+            android:background="#F5F5F5"
+            android:padding="16dp">
+            
+            <TextView android:id="@+id/tvRefId" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Ref ID: MH-2026-F98X" android:textStyle="bold" android:textSize="14sp"/>
+            <TextView android:id="@+id/tvVillageGat" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Village: Unknown | Gat: Unknown" android:layout_marginTop="4dp" android:textSize="14sp"/>
+            <TextView android:id="@+id/tvCropDisaster" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Crop: Unknown | Disaster: Unknown" android:layout_marginTop="4dp" android:textSize="14sp"/>
+            <TextView android:id="@+id/tvTimestamp" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Time: " android:layout_marginTop="4dp" android:textSize="14sp"/>
+        </LinearLayout>
+
+        <!-- Official Report Card -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
             app:cardCornerRadius="16dp"
-            app:cardElevation="2dp"
+            app:cardElevation="4dp"
             app:strokeWidth="1dp"
             app:strokeColor="@color/outline_variant">
 
@@ -55,59 +74,139 @@
                 android:padding="20dp">
 
                 <TextView
-                    android:id="@+id/tvDamageScore"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Final Damage Score: 55%"
-                    android:textColor="@color/error_red"
-                    android:textSize="20sp"
+                    android:text="Official Inspection Report"
+                    android:textColor="@color/black"
+                    android:textSize="18sp"
                     android:textStyle="bold" />
 
-                <!-- Score Breakdown -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
-                    android:orientation="vertical">
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+                    
+                    <ImageView
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:src="@android:drawable/ic_menu_agenda"
+                        app:tint="@color/error_red" />
 
-                    <TextView android:text="• NDVI Satellite Drop (35% weight): 20%" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-                    <TextView android:text="• Computer Vision (35% weight): 15%" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp"/>
-                    <TextView android:text="• Farmer Self-Report (20% weight): 15%" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp"/>
-                    <TextView android:text="• Weather Severity (10% weight): 5%" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp"/>
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="16dp"
+                        android:orientation="vertical">
+                        
+                        <TextView android:id="@+id/tvEvidenceCount" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Evidence Photos: 0" android:textStyle="bold"/>
+                        <TextView android:id="@+id/tvDuration" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Survey Time: 0s" android:textColor="@color/text_secondary" android:textSize="12sp"/>
+                    </LinearLayout>
                 </LinearLayout>
 
-                <View
+                <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="1dp"
+                    android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
-                    android:layout_marginBottom="16dp"
-                    android:background="@color/outline_variant" />
+                    android:orientation="horizontal">
+                    
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/bg_badge_primary_container"
+                        android:padding="4dp"
+                        android:text="GEO VERIFIED"
+                        android:textSize="10sp"
+                        android:textColor="@color/on_primary"
+                        android:textStyle="bold"/>
+                        
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:background="@drawable/bg_badge_primary_container"
+                        android:padding="4dp"
+                        android:text="PMFBY READY"
+                        android:textSize="10sp"
+                        android:textColor="@color/on_primary"
+                        android:textStyle="bold"/>
+                </LinearLayout>
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Estimated Compensation"
-                    android:textColor="@color/text_secondary" />
+                <!-- PDF Action Buttons -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnViewPdf"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:layout_marginTop="24dp"
+                    android:text="Open Report"
+                    android:textSize="16sp"
+                    app:cornerRadius="12dp" />
 
-                <TextView
-                    android:id="@+id/tvPayoutEstimate"
-                    android:layout_width="wrap_content"
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="₹33,000"
-                    android:textColor="@color/gov_green"
-                    android:textSize="28sp"
-                    android:textStyle="bold" />
+                    android:orientation="horizontal"
+                    android:layout_marginTop="8dp"
+                    android:weightSum="2">
+                    
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnDownloadPdf"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginEnd="4dp"
+                        android:text="Download"
+                        android:textColor="@color/text_secondary"
+                        app:strokeColor="@color/outline_variant" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnSharePdf"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="4dp"
+                        android:text="Share"
+                        android:textColor="@color/text_secondary"
+                        app:strokeColor="@color/outline_variant" />
+                </LinearLayout>
+
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
+
+        <!-- Claim Processing Status -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            android:text="Claim Processing Status"
+            android:textColor="@color/black"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:orientation="vertical">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="✓ Survey Completed" android:textColor="@color/gov_green" android:textStyle="bold"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="✓ AI Verification Completed" android:textColor="@color/gov_green" android:textStyle="bold" android:layout_marginTop="8dp"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="⏳ Officer Review Pending" android:textColor="@color/text_secondary" android:layout_marginTop="8dp"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="⏳ Compensation Decision Pending" android:textColor="@color/text_secondary" android:layout_marginTop="8dp"/>
+        </LinearLayout>
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
+            android:layout_marginTop="32dp"
             android:gravity="center"
-            android:text="An SMS receipt has been sent to your registered mobile number."
+            android:text="This report is securely stored for official verification purposes."
             android:textColor="@color/text_secondary"
-            android:textSize="14sp" />
+            android:textSize="12sp"
+            android:textStyle="italic" />
 
         <Space
             android:layout_width="match_parent"
@@ -120,6 +219,8 @@
             android:layout_height="60dp"
             android:layout_marginTop="24dp"
             android:text="Done"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:textColor="@color/gov_green"
             android:textSize="18sp"
             app:cornerRadius="30dp" />
 
