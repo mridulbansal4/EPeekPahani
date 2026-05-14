@@ -2,6 +2,13 @@ package io.sc.eppCordova.data.remote.dto
 
 import com.google.gson.annotations.SerializedName
 
+data class UploadedEvidenceDto(
+    val type: String,
+    val fileName: String,
+    val path: String,
+    val uploadedAt: String
+)
+
 data class ClaimRequest(
     val farmerId: String,
     val cropType: String,
@@ -13,7 +20,8 @@ data class ClaimRequest(
     val affectedAreaHa: Double,
     val gatNumber: String,
     val description: String? = null,
-    val evidenceUrls: List<String>? = null
+    val evidenceUrls: List<String>? = null,
+    val uploadedEvidence: List<UploadedEvidenceDto>? = null
 )
 
 data class ClaimResponse(
@@ -65,7 +73,11 @@ data class KycDto(
 data class UploadResponse(
     val success: Boolean,
     val url: String?,
-    val message: String?
+    val message: String?,
+    @SerializedName("fileName") val fileName: String? = null,
+    @SerializedName("fileType") val fileType: String? = null,
+    @SerializedName("path") val path: String? = null,
+    @SerializedName("uploadedAt") val uploadedAt: String? = null
 )
 
 data class ApiResultDto<T>(

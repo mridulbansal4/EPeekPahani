@@ -16,6 +16,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.button.MaterialButton
+import com.google.android.material.snackbar.Snackbar
 import io.sc.eppCordova.R
 import io.sc.eppCordova.databinding.FragmentClaimResultBinding
 import io.sc.eppCordova.lossclaim.viewmodel.LossClaimViewModel
@@ -105,6 +106,21 @@ class ClaimResultFragment : Fragment() {
                 viewModel.backendSubmitState.collect { state ->
                     when (state) {
                         is LossClaimViewModel.BackendSubmitState.IDLE -> {}
+                        is LossClaimViewModel.BackendSubmitState.UPLOADING -> {
+                            binding.btnSubmitClaim.text = "Uploading evidence..."
+                            binding.btnSubmitClaim.isEnabled = false
+                        }
+                        is LossClaimViewModel.BackendSubmitState.UPLOAD_PROGRESS -> {
+                            binding.btnSubmitClaim.text = "Uploading ${state.current}/${state.total}"
+                            binding.btnSubmitClaim.isEnabled = false
+                        }
+                        is LossClaimViewModel.BackendSubmitState.UPLOAD_FAILED -> {
+                            binding.btnSubmitClaim.text = "Upload Failed"
+                            binding.btnSubmitClaim.isEnabled = true
+                            Snackbar.make(binding.root, state.message, Snackbar.LENGTH_LONG)
+                                .setAction("Retry") { viewModel.retryUpload() }
+                                .show()
+                        }
                         is LossClaimViewModel.BackendSubmitState.SUBMITTING -> {
                             binding.btnSubmitClaim.text = "Submitting..."
                             binding.btnSubmitClaim.isEnabled = false

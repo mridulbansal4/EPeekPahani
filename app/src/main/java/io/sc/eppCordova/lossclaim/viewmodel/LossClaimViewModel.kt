@@ -6,8 +6,10 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.sc.eppCordova.data.remote.dto.ClaimRequest
 import io.sc.eppCordova.data.remote.dto.ReportDto
+import io.sc.eppCordova.data.remote.dto.UploadedEvidenceDto
 import io.sc.eppCordova.data.repository.ApiResult
 import io.sc.eppCordova.data.repository.ClaimsRepository
+import io.sc.eppCordova.data.repository.EvidenceUploadRepository
 import io.sc.eppCordova.data.repository.ReportRepository
 import io.sc.eppCordova.lossclaim.data.FarmerEntity
 import io.sc.eppCordova.lossclaim.data.LossClaimEntity
@@ -29,7 +31,8 @@ class LossClaimViewModel @Inject constructor(
     private val voiceProcessingEngine: VoiceProcessingEngine,
     private val evidencePackageBuilder: EvidencePackageBuilder,
     private val claimsRepository: ClaimsRepository,
-    private val reportRepository: ReportRepository
+    private val reportRepository: ReportRepository,
+    private val evidenceUploadRepository: EvidenceUploadRepository
 ) : ViewModel() {
 
     private val _currentFarmer = MutableStateFlow<FarmerEntity?>(null)
@@ -66,6 +69,9 @@ class LossClaimViewModel @Inject constructor(
 
     sealed class BackendSubmitState {
         data object IDLE : BackendSubmitState()
+        data object UPLOADING : BackendSubmitState()
+        data class UPLOAD_PROGRESS(val current: Int, val total: Int) : BackendSubmitState()
+        data class UPLOAD_FAILED(val message: String, val failedFiles: List<String>) : BackendSubmitState()
         data object SUBMITTING : BackendSubmitState()
         data object FETCHING_REPORT : BackendSubmitState()
         data object SUCCESS : BackendSubmitState()
@@ -251,7 +257,7 @@ class LossClaimViewModel @Inject constructor(
         viewModelScope.launch {
             val pkg = finalEvidencePackage ?: return@launch
             if (pkg.photos.size < 2 || pkg.videos.isEmpty()) return@launch
-            
+
             val farmer = _currentFarmer.value ?: return@launch
 
             val claim = LossClaimEntity(
@@ -260,7 +266,7 @@ class LossClaimViewModel @Inject constructor(
                 crop = farmer.primaryCrop ?: "Unknown",
                 damageType = _selectedDamageType.value,
                 damagePercentage = pkg.estimatedDamagePercentage,
-                estimatedCompensation = (pkg.estimatedDamagePercentage * 100).toDouble(), // mock logic
+                estimatedCompensation = (pkg.estimatedDamagePercentage * 100).toDouble(),
                 imagePath1 = pkg.photos[0].imagePath,
                 imagePath2 = pkg.photos[1].imagePath,
                 videoPath = pkg.videos[0].videoPath,
@@ -268,6 +274,46 @@ class LossClaimViewModel @Inject constructor(
                 longitude = pkg.photos[0].longitude
             )
             repository.saveLossClaim(claim)
+
+            val totalFiles = pkg.photos.size + pkg.videos.size
+            _backendSubmitState.value = BackendSubmitState.UPLOADING
+
+            val uploadedEvidence = mutableListOf<UploadedEvidenceDto>()
+            val failedFiles = mutableListOf<String>()
+
+            for ((index, photo) in pkg.photos.withIndex()) {
+                _backendSubmitState.value = BackendSubmitState.UPLOAD_PROGRESS(index + 1, totalFiles)
+                val file = File(photo.imagePath)
+                if (!file.exists()) {
+                    failedFiles.add(photo.imagePath)
+                    continue
+                }
+                when (val result = evidenceUploadRepository.uploadSingleFile(file, "image/jpeg", farmer.mobileNumber)) {
+                    is ApiResult.Success -> uploadedEvidence.add(result.data)
+                    is ApiResult.Error -> failedFiles.add(file.name)
+                }
+            }
+
+            for ((index, video) in pkg.videos.withIndex()) {
+                _backendSubmitState.value = BackendSubmitState.UPLOAD_PROGRESS(pkg.photos.size + index + 1, totalFiles)
+                val file = File(video.videoPath)
+                if (!file.exists()) {
+                    failedFiles.add(video.videoPath)
+                    continue
+                }
+                when (val result = evidenceUploadRepository.uploadSingleFile(file, "video/mp4", farmer.mobileNumber)) {
+                    is ApiResult.Success -> uploadedEvidence.add(result.data)
+                    is ApiResult.Error -> failedFiles.add(file.name)
+                }
+            }
+
+            if (failedFiles.isNotEmpty() && uploadedEvidence.isEmpty()) {
+                _backendSubmitState.value = BackendSubmitState.UPLOAD_FAILED(
+                    message = "All uploads failed. Check connection and retry.",
+                    failedFiles = failedFiles
+                )
+                return@launch
+            }
 
             _backendSubmitState.value = BackendSubmitState.SUBMITTING
             val request = ClaimRequest(
@@ -280,7 +326,8 @@ class LossClaimViewModel @Inject constructor(
                 incidentDate = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault()).format(java.util.Date()),
                 affectedAreaHa = farmer.area?.filter { it.isDigit() || it == '.' }?.toDoubleOrNull() ?: 1.0,
                 gatNumber = farmer.gatNumber,
-                description = "Loss claim due to ${_selectedDamageType.value}"
+                description = "Loss claim due to ${_selectedDamageType.value}",
+                uploadedEvidence = uploadedEvidence.ifEmpty { null }
             )
 
             when (val result = claimsRepository.submitClaim(request)) {
@@ -306,5 +353,9 @@ class LossClaimViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    fun retryUpload() {
+        submitClaim()
     }
 }

@@ -31,7 +31,10 @@ interface BackendApi {
 
     @Multipart
     @POST("api/upload")
-    suspend fun uploadFile(@Part file: MultipartBody.Part): Response<UploadResponse>
+    suspend fun uploadFile(
+        @Part file: MultipartBody.Part,
+        @Query("farmerId") farmerId: String? = null
+    ): Response<UploadResponse>
 
     @GET("api/payments")
     suspend fun getPayments(@Query("farmerId") farmerId: String? = null): Response<List<PaymentDto>>
