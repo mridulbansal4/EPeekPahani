@@ -229,20 +229,31 @@
                         android:layout_marginBottom="16dp"/>
 
                     <!-- Detected Disaster -->
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Detected Disaster"
-                        android:textColor="@color/on_surface_variant"
-                        android:textSize="12sp" />
-                    <TextView
-                        android:id="@+id/tv_disaster_type"
+                    <LinearLayout
+                        android:id="@+id/llDisasterType"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="--"
-                        android:textColor="#F57C00"
-                        android:textSize="18sp"
-                        android:textStyle="bold" />
+                        android:orientation="vertical"
+                        android:background="?attr/selectableItemBackground"
+                        android:clickable="true"
+                        android:focusable="true">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Disaster Type (Tap to change)"
+                            android:textColor="@color/on_surface_variant"
+                            android:textSize="12sp" />
+                        <TextView
+                            android:id="@+id/tv_disaster_type"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Select Disaster"
+                            android:textColor="#F57C00"
+                            android:textSize="18sp"
+                            android:textStyle="bold"
+                            android:drawableEnd="@android:drawable/arrow_down_float" />
+                    </LinearLayout>
 
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
