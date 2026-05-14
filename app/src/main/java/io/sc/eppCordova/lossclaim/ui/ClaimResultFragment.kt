@@ -145,8 +145,9 @@ class ClaimResultFragment : Fragment() {
 
     private fun showReportFromBackend() {
         val report = viewModel.generatedReport.value ?: return
-        val container = binding.root.findViewById<LinearLayout>(R.id.llBackendReport)
-            ?: createBackendReportContainer()
+        val tag = "backendReportContainer"
+        val container = binding.root.findViewWithTag<LinearLayout>(tag)
+            ?: createBackendReportContainer().apply { this.tag = tag }
 
         container.removeAllViews()
         container.visibility = View.VISIBLE

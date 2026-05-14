@@ -7,6 +7,8 @@ import io.sc.eppCordova.data.remote.dto.FarmerDto
 import io.sc.eppCordova.data.remote.dto.KycDto
 import io.sc.eppCordova.data.remote.dto.PaymentDto
 import io.sc.eppCordova.data.remote.dto.UploadResponse
+import io.sc.eppCordova.data.remote.dto.ReportDto
+import io.sc.eppCordova.data.remote.dto.ReportsListDto
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import retrofit2.http.GET
