@@ -225,8 +225,8 @@ class LossClaimViewModel @Inject constructor(
     }
 
     fun generateEvidencePackage(isMockLocationUsed: Boolean = false) {
-        if (_capturedPhotos.value.size != 2 || _capturedVideos.value.size != 1) {
-            // Strict Validation
+        if (_capturedPhotos.value.size < 2 || _capturedVideos.value.isEmpty()) {
+            // Strict Validation - Need at least 2 photos and 1 video
             return
         }
         val durationSecs = (System.currentTimeMillis() - _surveyStartTime.value) / 1000
@@ -250,8 +250,8 @@ class LossClaimViewModel @Inject constructor(
     fun submitClaim() {
         viewModelScope.launch {
             val pkg = finalEvidencePackage ?: return@launch
-            if (pkg.photos.size != 2 || pkg.videos.size != 1) return@launch
-
+            if (pkg.photos.size < 2 || pkg.videos.isEmpty()) return@launch
+            
             val farmer = _currentFarmer.value ?: return@launch
 
             val claim = LossClaimEntity(
@@ -260,7 +260,7 @@ class LossClaimViewModel @Inject constructor(
                 crop = farmer.primaryCrop ?: "Unknown",
                 damageType = _selectedDamageType.value,
                 damagePercentage = pkg.estimatedDamagePercentage,
-                estimatedCompensation = (pkg.estimatedDamagePercentage * 100).toDouble(),
+                estimatedCompensation = (pkg.estimatedDamagePercentage * 100).toDouble(), // mock logic
                 imagePath1 = pkg.photos[0].imagePath,
                 imagePath2 = pkg.photos[1].imagePath,
                 videoPath = pkg.videos[0].videoPath,
