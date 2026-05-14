@@ -11,6 +11,7 @@ object Constants {
      *
      * Switch between the two depending on your test setup.
      */
+
     const val BACKEND_BASE_URL = "http://192.168.137.32:5000/"
     const val PREFS_NAME = "user_prefs"
     const val PREF_TOKEN = "USER_TOKEN"
