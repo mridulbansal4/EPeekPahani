@@ -15,6 +15,7 @@ import android.speech.tts.TextToSpeech
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowManager
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.CameraSelector
@@ -28,6 +29,9 @@ import androidx.camera.video.Recording
 import androidx.camera.video.VideoCapture
 import androidx.camera.video.VideoRecordEvent
 import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
@@ -38,11 +42,8 @@ import io.sc.eppCordova.R
 import io.sc.eppCordova.databinding.FragmentCameraSurveyBinding
 import io.sc.eppCordova.lossclaim.domain.engine.SurveyState
 import io.sc.eppCordova.lossclaim.domain.model.QuestionType
-import io.sc.eppCordova.lossclaim.domain.model.SurveyStage
 import io.sc.eppCordova.lossclaim.viewmodel.LossClaimViewModel
 import io.sc.eppCordova.utils.ImageUtils
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.io.File
 import java.util.Locale
@@ -67,7 +68,8 @@ class CameraSurveyFragment : Fragment() {
     private var isRecordingAudio = false
     private var isRecordingVideo = false
     private var currentPromptId: String? = null
-    private var recordingTimerJob: Job? = null
+    
+    private var recordingTimerJob: kotlinx.coroutines.Job? = null
     private var secondsRecorded = 0
 
     private val requestPermissionLauncher = registerForActivityResult(
@@ -94,16 +96,45 @@ class CameraSurveyFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // Edge-to-edge layout setup
+        requireActivity().window.apply {
+            clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS)
+            addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
+            statusBarColor = Color.TRANSPARENT
+            navigationBarColor = Color.TRANSPARENT
+            WindowCompat.setDecorFitsSystemWindows(this, false)
+        }
+        
+        // Fix the white status bar patch caused by parent CoordinatorLayout's fitsSystemWindows
+        val navHost = requireActivity().findViewById<View>(R.id.nav_host_fragment)
+        (navHost?.parent as? View)?.let { parentView ->
+            parentView.fitsSystemWindows = false
+            parentView.requestApplyInsets()
+            parentView.setBackgroundColor(Color.BLACK)
+        }
+
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+            val density = v.resources.displayMetrics.density
+            
+            // Apply margins considering the system bars
+            val titleParams = binding.tvScreenTitle.layoutParams as ViewGroup.MarginLayoutParams
+            titleParams.topMargin = insets.top + (48 * density).toInt()
+            binding.tvScreenTitle.layoutParams = titleParams
+            
+            val timerParams = binding.layoutRecordingStatus.layoutParams as ViewGroup.MarginLayoutParams
+            timerParams.topMargin = insets.top + (48 * density).toInt()
+            binding.layoutRecordingStatus.layoutParams = timerParams
+            
+            val fabParams = binding.btnPrimaryAction.layoutParams as ViewGroup.MarginLayoutParams
+            fabParams.bottomMargin = insets.bottom + (48 * density).toInt()
+            binding.btnPrimaryAction.layoutParams = fabParams
+
+            windowInsets
+        }
+
         cameraExecutor = Executors.newSingleThreadExecutor()
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
-
-        binding.btnBack.setOnClickListener {
-            findNavController().popBackStack()
-        }
-
-        binding.btnSkip.setOnClickListener {
-            viewModel.skipCurrentPrompt()
-        }
 
         tts = TextToSpeech(requireContext()) { status ->
             if (status == TextToSpeech.SUCCESS) {
@@ -120,31 +151,32 @@ class CameraSurveyFragment : Fragment() {
             override fun onEndOfSpeech() {}
             override fun onError(error: Int) {
                 isRecordingAudio = false
-                stopRecordingTimer()
-                binding.listeningLayout.visibility = View.GONE
                 resetPrimaryButton()
+                
+                // Ignore ERROR_CLIENT and ERROR_NO_MATCH for a cleaner UX if they happen rapidly
+                if (error == SpeechRecognizer.ERROR_CLIENT || error == SpeechRecognizer.ERROR_NO_MATCH) {
+                    binding.tvAiInstruction.text = "Please tap mic to speak again."
+                    return
+                }
+
                 val errorMsg = when (error) {
                     SpeechRecognizer.ERROR_AUDIO -> "Audio recording error"
-                    SpeechRecognizer.ERROR_CLIENT -> "Client side error"
                     SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS -> "Insufficient permissions"
                     SpeechRecognizer.ERROR_NETWORK -> "Network error"
                     SpeechRecognizer.ERROR_NETWORK_TIMEOUT -> "Network timeout"
-                    SpeechRecognizer.ERROR_NO_MATCH -> "No speech matched"
                     SpeechRecognizer.ERROR_RECOGNIZER_BUSY -> "RecognitionService busy"
                     SpeechRecognizer.ERROR_SERVER -> "Error from server"
                     SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> "No speech input"
                     else -> "Didn't understand, please try again."
                 }
                 Toast.makeText(requireContext(), errorMsg, Toast.LENGTH_SHORT).show()
+                binding.tvAiInstruction.text = "Voice unrecognised, please tap mic again."
             }
 
             override fun onResults(results: Bundle?) {
                 isRecordingAudio = false
-                stopRecordingTimer()
-                binding.listeningLayout.visibility = View.GONE
-                binding.chipAiAnalysisStatus.visibility = View.VISIBLE
-                binding.tvAiAnalysisText.text = "Realtime validation..."
                 resetPrimaryButton()
+                binding.tvAiInstruction.text = "Processing response..."
                 
                 val matches = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
                 if (!matches.isNullOrEmpty()) {
@@ -154,7 +186,7 @@ class CameraSurveyFragment : Fragment() {
                         viewModel.processVoiceResponse(transcript, id, text)
                     }
                 } else {
-                    binding.chipAiAnalysisStatus.visibility = View.GONE
+                    binding.tvAiInstruction.text = "No response recorded, please try again."
                 }
             }
             override fun onPartialResults(partialResults: Bundle?) {}
@@ -172,12 +204,6 @@ class CameraSurveyFragment : Fragment() {
             ))
         }
 
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewModel.currentFarmer.collect { farmer ->
-                binding.tvFarmerDetails.text = "Farmer: ${farmer?.farmerName ?: "Unknown"}"
-            }
-        }
-
         viewModel.startSurvey()
 
         viewLifecycleOwner.lifecycleScope.launch {
@@ -185,45 +211,30 @@ class CameraSurveyFragment : Fragment() {
                 when (state) {
                     is SurveyState.Idle -> { }
                     is SurveyState.Active -> {
-                        binding.chipAiAnalysisStatus.visibility = View.GONE
-                        binding.listeningLayout.visibility = View.GONE
                         binding.btnPrimaryAction.isEnabled = true
                         
                         val prompt = state.currentPrompt
                         binding.tvAiInstruction.text = prompt.textMarathi
-                        binding.tvStepProgress.text = prompt.stage.name.replace("_", " ")
-                        // chipAiStatus removed
-                        // Assuming surface is fine, just use a light color
-                        
-                        // Fake progress logic for UI presentation
-                        val progress = (Math.random() * 40 + 20).toInt()
-                        binding.surveyProgressBar.progress = progress
-                        binding.tvProgressSteps.text = "Survey Question"
 
                         tts?.speak(prompt.textMarathi, TextToSpeech.QUEUE_FLUSH, null, null)
 
                         setupInputMode(prompt.type, prompt.id)
                     }
                     is SurveyState.Reviewing -> {
-                        binding.chipAiAnalysisStatus.visibility = View.GONE
-                        binding.listeningLayout.visibility = View.GONE
-                        binding.btnPrimaryAction.setOnClickListener(null)
                         resetPrimaryButton()
                         
                         val prettyMissing = state.missingEvidence.joinToString(", ") {
                             it.replace("_", " ").replaceFirstChar { c -> c.uppercase() }
                         }
                         binding.tvAiInstruction.text = "Missing Evidence:\n$prettyMissing\n\nPlease review."
-                        binding.tvAiGuidanceInline.text = "Review missing items."
-                        binding.btnNextStep.text = "Finish"
-                        binding.btnNextStep.setOnClickListener {
+                        
+                        binding.btnPrimaryAction.setImageResource(android.R.drawable.ic_media_play)
+                        binding.btnPrimaryAction.setOnClickListener {
                             viewModel.generateEvidencePackage()
                             findNavController().navigate(R.id.action_camera_to_processing)
                         }
                     }
                     is SurveyState.Completed -> {
-                        binding.chipAiAnalysisStatus.visibility = View.GONE
-                        binding.listeningLayout.visibility = View.GONE
                         binding.btnPrimaryAction.setOnClickListener(null)
                         binding.tvAiInstruction.text = "Survey completed successfully. Generating package..."
                         viewModel.generateEvidencePackage()
@@ -235,7 +246,7 @@ class CameraSurveyFragment : Fragment() {
     }
 
     private fun resetPrimaryButton() {
-        binding.btnPrimaryAction.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#1976D2"))
+        binding.btnPrimaryAction.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#1D6F42")) // Theme Green
     }
 
     private fun setupInputMode(type: QuestionType, promptId: String) {
@@ -243,18 +254,13 @@ class CameraSurveyFragment : Fragment() {
         resetPrimaryButton()
         isRecordingVideo = false
         isRecordingAudio = false
-        stopRecordingTimer()
         
-        binding.btnNextStep.setOnClickListener { viewModel.skipCurrentPrompt() }
-
         when (type) {
             QuestionType.CAPTURE_PHOTO -> {
-                binding.tvAiGuidanceInline.text = "Please capture a clear photo."
                 binding.btnPrimaryAction.setImageResource(android.R.drawable.ic_menu_camera)
                 binding.btnPrimaryAction.setOnClickListener { takePhoto() }
             }
             QuestionType.CAPTURE_VIDEO -> {
-                binding.tvAiGuidanceInline.text = "Please record a short video."
                 binding.btnPrimaryAction.setImageResource(android.R.drawable.presence_video_online)
                 binding.btnPrimaryAction.setOnClickListener {
                     if (!isRecordingVideo) {
@@ -269,7 +275,6 @@ class CameraSurveyFragment : Fragment() {
                 }
             }
             QuestionType.VERBAL_CONFIRM -> {
-                binding.tvAiGuidanceInline.text = "Please tap the mic and speak."
                 binding.btnPrimaryAction.setImageResource(android.R.drawable.ic_btn_speak_now)
                 binding.btnPrimaryAction.setOnClickListener {
                     if (!isRecordingAudio) {
@@ -277,25 +282,34 @@ class CameraSurveyFragment : Fragment() {
                         binding.btnPrimaryAction.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#F44336"))
                         isRecordingAudio = true
                     } else {
-                        binding.listeningLayout.visibility = View.GONE
-                        binding.chipAiAnalysisStatus.visibility = View.VISIBLE
-                        binding.tvAiAnalysisText.text = "Realtime validation..."
+                        binding.tvAiInstruction.text = "Processing response..."
                         stopRecording()
                         isRecordingAudio = false
                     }
                 }
             }
             QuestionType.INFO -> {
-                binding.tvAiGuidanceInline.text = "Please proceed to the next step."
                 binding.btnPrimaryAction.setImageResource(android.R.drawable.ic_media_play)
                 binding.btnPrimaryAction.setOnClickListener { viewModel.skipCurrentPrompt() }
             }
             else -> {
-                binding.tvAiGuidanceInline.text = "Please proceed to the next step."
                 binding.btnPrimaryAction.setImageResource(android.R.drawable.ic_media_play)
                 binding.btnPrimaryAction.setOnClickListener { viewModel.skipCurrentPrompt() }
             }
         }
+    }
+
+    private fun startRecording(promptId: String) {
+        currentPromptId = promptId
+        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "mr-IN")
+        speechRecognizer?.startListening(intent)
+        binding.tvAiInstruction.text = "Listening..."
+    }
+
+    private fun stopRecording() {
+        speechRecognizer?.stopListening()
     }
 
     private fun startRecordingTimer() {
@@ -304,7 +318,7 @@ class CameraSurveyFragment : Fragment() {
         updateTimerText()
         recordingTimerJob = viewLifecycleOwner.lifecycleScope.launch {
             while(true) {
-                delay(1000)
+                kotlinx.coroutines.delay(1000)
                 secondsRecorded++
                 updateTimerText()
             }
@@ -322,22 +336,6 @@ class CameraSurveyFragment : Fragment() {
         binding.tvRecordingTimer.text = String.format("%02d:%02d", mins, secs)
     }
 
-    private fun startRecording(promptId: String) {
-        currentPromptId = promptId
-        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
-        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "mr-IN")
-        speechRecognizer?.startListening(intent)
-        startRecordingTimer()
-        binding.listeningLayout.visibility = View.VISIBLE
-        binding.tvAiGuidanceInline.text = "Listening to your response..."
-    }
-
-    private fun stopRecording() {
-        speechRecognizer?.stopListening()
-        stopRecordingTimer()
-    }
-
     @SuppressLint("MissingPermission")
     private fun startVideoRecording() {
         val videoCapture = this.videoCapture ?: return
@@ -351,20 +349,14 @@ class CameraSurveyFragment : Fragment() {
                 when(recordEvent) {
                     is VideoRecordEvent.Start -> {
                         startRecordingTimer()
-                        binding.tvAiGuidanceInline.text = "Recording video..."
+                        binding.tvAiInstruction.text = "Recording video..."
                     }
                     is VideoRecordEvent.Finalize -> {
                         stopRecordingTimer()
                         if (!recordEvent.hasError()) {
                             val durationSecs = ((System.currentTimeMillis() - videoRecordingStart) / 1000).toInt()
-                            val lat = viewModel.currentLocation.value?.latitude ?: 0.0
-                            val lon = viewModel.currentLocation.value?.longitude ?: 0.0
                             
-                            binding.chipAiAnalysisStatus.visibility = View.VISIBLE
-                            binding.tvAiAnalysisText.text = "Analyzing video evidence..."
-                            binding.tvAiGuidanceInline.text = "Verifying..."
-                            // binding.chipAiStatus.text = "AI Analyzing"
-                            
+                            binding.tvAiInstruction.text = "Analyzing video evidence..."
                             viewModel.processCapturedVideo(videoFile.absolutePath, durationSecs)
                         } else {
                             recording?.close()
@@ -373,6 +365,11 @@ class CameraSurveyFragment : Fragment() {
                             binding.btnPrimaryAction.isEnabled = true
                             resetPrimaryButton()
                             isRecordingVideo = false
+                            
+                            val prompt = (viewModel.surveyState.value as? SurveyState.Active)?.currentPrompt
+                            if (prompt != null) {
+                                binding.tvAiInstruction.text = prompt.textMarathi
+                            }
                         }
                     }
                 }
@@ -419,11 +416,7 @@ class CameraSurveyFragment : Fragment() {
 
                     ImageUtils.addGeoWatermark(photoFile, lat, lon, gat, disaster)
                     
-                    binding.chipAiAnalysisStatus.visibility = View.VISIBLE
-                    binding.tvAiAnalysisText.text = "Analyzing photo..."
-                    binding.tvAiGuidanceInline.text = "Verifying..."
-                    // binding.chipAiStatus.text = "AI Analyzing"
-                    
+                    binding.tvAiInstruction.text = "Analyzing photo..."
                     viewModel.processCapturedPhoto(photoFile.absolutePath)
                 }
             }
@@ -463,6 +456,22 @@ class CameraSurveyFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        
+        // Restore window settings
+        requireActivity().window.apply {
+            WindowCompat.setDecorFitsSystemWindows(this, true)
+            statusBarColor = ContextCompat.getColor(requireContext(), R.color.surface)
+            navigationBarColor = ContextCompat.getColor(requireContext(), R.color.surface)
+        }
+        
+        // Restore parent view's fitsSystemWindows
+        val navHost = requireActivity().findViewById<View>(R.id.nav_host_fragment)
+        (navHost?.parent as? View)?.let { parentView ->
+            parentView.fitsSystemWindows = true
+            parentView.requestApplyInsets()
+            parentView.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.background))
+        }
+        
         cameraExecutor.shutdown()
         tts?.stop()
         tts?.shutdown()

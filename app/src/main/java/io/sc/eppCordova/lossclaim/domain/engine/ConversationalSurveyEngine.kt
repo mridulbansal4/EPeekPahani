@@ -15,7 +15,8 @@ class ConversationalSurveyEngine @Inject constructor() {
     private val prompts = listOf(
         // Stage 1: Field Orientation
         AiPrompt("o1", "Please point the camera towards your field.", "कृपया कॅमेरा तुमच्या शेताकडे वळवा.", "कृपया कैमरा अपने खेत की ओर करें।", QuestionType.INFO, SurveyStage.FIELD_ORIENTATION, nextPromptId = "o2"),
-        AiPrompt("o2", "Walk slowly along one row so I can see the full crop.", "कृपया एका ओळीने हळू चाला जेणेकरून मला संपूर्ण पीक दिसेल.", "कृपया एक पंक्ति के साथ धीरे-धीरे चलें ताकि मैं पूरी फसल देख सकूं।", QuestionType.CAPTURE_PHOTO, SurveyStage.FIELD_ORIENTATION),
+        AiPrompt("o2", "Walk slowly along one row so I can see the full crop.", "कृपया एका ओळीने हळू चाला जेणेकरून मला संपूर्ण पीक दिसेल.", "कृपया एक पंक्ति के साथ धीरे-धीरे चलें ताकि मैं पूरी फसल देख सकूं।", QuestionType.CAPTURE_PHOTO, SurveyStage.FIELD_ORIENTATION, nextPromptId = "o3"),
+        AiPrompt("o3", "Please capture a close-up photo of the affected area.", "कृपया बाधित क्षेत्राचा जवळून फोटो काढा.", "कृपया प्रभावित क्षेत्र की क्लोज-अप तस्वीर लें।", QuestionType.CAPTURE_PHOTO, SurveyStage.FIELD_ORIENTATION),
 
         // Stage 2: AI Damage Detection (Dynamic based on observation)
         AiPrompt("d_chlorosis", "I can see yellowing on the leaves. When did you first notice this?", "मला पानांवर पिवळसरपणा दिसतोय. तुम्हाला हे पहिल्यांदा कधी दिसलं?", "मुझे पत्तियों पर पीलापन दिखाई दे रहा है। आपने इसे पहली बार कब देखा?", QuestionType.VERBAL_CONFIRM, SurveyStage.AI_DAMAGE_DETECTION),
@@ -53,6 +54,10 @@ class ConversationalSurveyEngine @Inject constructor() {
         AiPrompt("c1", "Record a panoramic video showing the fallen crops.", "संपूर्ण पडलेलं पीक दाखवत व्हिडिओ काढा.", "गिरे हुए पूरे फसल को दिखाते हुए एक पैनोरमिक वीडियो रिकॉर्ड करें।", QuestionType.CAPTURE_VIDEO, SurveyStage.AI_DAMAGE_DETECTION, DisasterType.CYCLONE, nextPromptId = "c2"),
         AiPrompt("c2", "Show me roots of one fallen plant — are they pulled out or stem broken?", "मला एका पडलेल्या झाडाची मुळं दाखवा — ती उपटली आहेत की खोड मोडलंय?", "मुझे एक गिरे हुए पौधे की जड़ें दिखाएं — क्या वे उखड़ी हुई हैं या तना टूटा हुआ है?", QuestionType.CAPTURE_PHOTO, SurveyStage.AI_DAMAGE_DETECTION, DisasterType.CYCLONE),
 
+        // GENERIC / UNKNOWN
+        AiPrompt("g1", "Please show me the most damaged part of the field.", "कृपया मला शेताचा सर्वात जास्त खराब झालेला भाग दाखवा.", "कृपया मुझे खेत का सबसे क्षतिग्रस्त हिस्सा दिखाएं।", QuestionType.CAPTURE_PHOTO, SurveyStage.AI_DAMAGE_DETECTION, DisasterType.UNKNOWN, nextPromptId = "g2"),
+        AiPrompt("g2", "Can you show a close-up of the affected crop?", "तुम्ही बाधित पिकाचा जवळून फोटो काढू शकता का?", "क्या आप प्रभावित फसल का क्लोज-अप दिखा सकते हैं?", QuestionType.CAPTURE_PHOTO, SurveyStage.AI_DAMAGE_DETECTION, DisasterType.UNKNOWN),
+
         // Stage 3: Farmer Confirmation
         AiPrompt("q1", "Which calamity damaged your crop?", "कोणत्या आपत्तीमुळे तुमच्या पिकाचं नुकसान झालं?", "किस आपदा ने आपकी फसल को नुकसान पहुँचाया?", QuestionType.VERBAL_CONFIRM, SurveyStage.FARMER_CONFIRMATION, nextPromptId = "q2"),
         AiPrompt("q2", "When did the damage occur?", "नुकसान कधी झालं?", "नुकसान कब हुआ?", QuestionType.VERBAL_CONFIRM, SurveyStage.FARMER_CONFIRMATION, nextPromptId = "q3"),
@@ -86,7 +91,7 @@ class ConversationalSurveyEngine @Inject constructor() {
         }
 
         // 3. Dynamic Triggers based on latest Observation
-        if (current.stage == SurveyStage.FIELD_ORIENTATION && current.id == "o2") {
+        if (current.stage == SurveyStage.FIELD_ORIENTATION && current.id == "o3") {
             val latestObs = observations.maxByOrNull { it.timestamp }
             if (latestObs != null) {
                 return when (latestObs.type) {
@@ -111,6 +116,7 @@ class ConversationalSurveyEngine @Inject constructor() {
 
     private fun getFirstPromptForDisaster(disaster: DisasterType): AiPrompt {
         return prompts.firstOrNull { it.stage == SurveyStage.AI_DAMAGE_DETECTION && it.requiredDisaster == disaster }
+            ?: prompts.firstOrNull { it.stage == SurveyStage.AI_DAMAGE_DETECTION && it.requiredDisaster == DisasterType.UNKNOWN }
             ?: prompts.first { it.id == "q1" }
     }
 }
