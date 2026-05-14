@@ -49,7 +49,7 @@
                 android:id="@+id/tvVideoTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Video Evidence"
+                android:text="@string/video_evidence"
                 android:textColor="#FFFFFF"
                 android:textSize="14sp"
                 android:textStyle="bold" />
@@ -59,7 +59,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
-                android:text="Timestamp"
+                android:text="@string/timestamp"
                 android:textColor="#9E9E9E"
                 android:textSize="11sp" />
 
@@ -78,7 +78,7 @@
                     android:backgroundTint="#1A4CAF50"
                     android:paddingHorizontal="6dp"
                     android:paddingVertical="2dp"
-                    android:text="GPS ✓"
+                    android:text="@string/gps_verified"
                     android:textColor="#4CAF50"
                     android:textSize="9sp"
                     android:textStyle="bold" />
@@ -88,7 +88,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
-                    android:text="00:00"
+                    android:text="@string/duration_zero"
                     android:textColor="#B0BEC5"
                     android:textSize="10sp" />
             </LinearLayout>

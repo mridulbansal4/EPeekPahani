@@ -4,10 +4,12 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.sc.eppCordova.R
 import io.sc.eppCordova.databinding.FragmentLossClaimHomeBinding
 import io.sc.eppCordova.lossclaim.viewmodel.LossClaimViewModel
@@ -35,9 +37,17 @@ class LossClaimHomeFragment : Fragment() {
         // Mock load farmer (in reality from SharedViewModel after OTP)
         val mobile = sharedViewModel.farmerState.value?.mobile ?: "9876543210"
         viewModel.loadFarmerData(mobile)
-        
-        // Auto-detect disaster based on weather (PDF says "Pre-populates the disaster type suggestion")
-        viewModel.setDamageType("Flood") // Simulating auto-detection
+
+        val disasters = arrayOf("Flood", "Drought", "Pest", "Disease", "Cyclone", "Hailstorm")
+
+        binding.llDisasterType.setOnClickListener {
+            MaterialAlertDialogBuilder(requireContext())
+                .setTitle("Select Disaster Type")
+                .setItems(disasters) { _, which ->
+                    viewModel.setDamageType(disasters[which])
+                }
+                .show()
+        }
 
         lifecycleScope.launch {
             viewModel.currentFarmer.collect { farmer ->
@@ -58,14 +68,29 @@ class LossClaimHomeFragment : Fragment() {
                     }
                     
                     binding.tvLandArea.text = "${it.area} Hectares"
-                    binding.tvInsurance.text = if (it.insuranceStatus) "PMFBY Active" else "Inactive"
+                    
+                    // Show PMFBY/KCC Enrolled based on boolean fetched from CSV
+                    binding.tvInsurance.text = if (it.insuranceStatus) "PMFBY / KCC Enrolled" else "Inactive"
                     binding.tvIrrigation.text = "Rainfed (Default)" // Not in entity, default value
-                    binding.tvDisasterType.text = "Flood (AI Detected)"
+                }
+            }
+        }
+
+        lifecycleScope.launch {
+            viewModel.selectedDamageType.collect { type ->
+                if (type.isEmpty()) {
+                    binding.tvDisasterType.text = "Select Disaster"
+                } else {
+                    binding.tvDisasterType.text = type
                 }
             }
         }
 
         binding.btnStartSurvey.setOnClickListener {
+            if (viewModel.selectedDamageType.value.isEmpty() || viewModel.selectedDamageType.value == "Select Disaster") {
+                Toast.makeText(requireContext(), "Please select a disaster type first", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
             findNavController().navigate(R.id.action_home_to_camera)
         }
     }
