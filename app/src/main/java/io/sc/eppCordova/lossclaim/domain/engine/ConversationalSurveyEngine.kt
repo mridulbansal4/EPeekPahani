@@ -31,6 +31,7 @@ class ConversationalSurveyEngine @Inject constructor() {
         AiPrompt("f3", "For how many days was the field flooded?", "शेत किती दिवस पाण्याखाली होतं?", "खेत में कितने दिनों तक पानी भरा रहा?", QuestionType.VERBAL_CONFIRM, SurveyStage.AI_DAMAGE_DETECTION, DisasterType.FLOOD),
 
         // HAILSTORM
+        AiPrompt("h0", "Record a video sweeping across the field to show the extent of hailstorm damage.", "गारपिटीमुळे झालेले नुकसान दाखवण्यासाठी संपूर्ण शेतात कॅमेरा फिरवत एक व्हिडिओ काढा.", "ओलावृष्टि से हुए नुकसान को दिखाने के लिए पूरे खेत में कैमरा घुमाते हुए एक वीडियो रिकॉर्ड करें।", QuestionType.CAPTURE_VIDEO, SurveyStage.AI_DAMAGE_DETECTION, DisasterType.HAILSTORM, nextPromptId = "h1"),
         AiPrompt("h1", "Show me one of the most damaged leaves up close.", "मला सर्वात जास्त खराब झालेलं पान जवळून दाखवा.", "मुझे सबसे क्षतिग्रस्त पत्तियों में से एक को करीब से दिखाएं।", QuestionType.CAPTURE_PHOTO, SurveyStage.AI_DAMAGE_DETECTION, DisasterType.HAILSTORM, nextPromptId = "h2"),
         AiPrompt("h2", "Can you show the crop heads or panicles?", "तुम्ही पिकाची कणसं दाखवू शकता का?", "क्या आप फसल के सिरे या पैनिकल दिखा सकते हैं?", QuestionType.CAPTURE_PHOTO, SurveyStage.AI_DAMAGE_DETECTION, DisasterType.HAILSTORM, nextPromptId = "h3"),
         AiPrompt("h3", "How large were the hailstones?", "गारा किती मोठ्या होत्या?", "ओले कितने बड़े थे?", QuestionType.VERBAL_CONFIRM, SurveyStage.AI_DAMAGE_DETECTION, DisasterType.HAILSTORM),
@@ -46,6 +47,7 @@ class ConversationalSurveyEngine @Inject constructor() {
         AiPrompt("p3", "Walk one row slowly so I can count how many plants are affected.", "एका ओळीने हळू चाला जेणेकरून मी किती झाडे बाधित आहेत ते मोजू शकेन.", "एक पंक्ति में धीरे-धीरे चलें ताकि मैं गिन सकूं कि कितने पौधे प्रभावित हैं।", QuestionType.CAPTURE_PHOTO, SurveyStage.AI_DAMAGE_DETECTION, DisasterType.PEST_ATTACK),
 
         // DISEASE
+        AiPrompt("di0", "Record a video sweeping across the field to show the extent of the disease spread.", "रोगाचा प्रसार दाखवण्यासाठी संपूर्ण शेतात कॅमेरा फिरवत एक व्हिडिओ काढा.", "बीमारी के प्रसार को दिखाने के लिए पूरे खेत में कैमरा घुमाते हुए एक वीडियो रिकॉर्ड करें।", QuestionType.CAPTURE_VIDEO, SurveyStage.AI_DAMAGE_DETECTION, DisasterType.DISEASE, nextPromptId = "di1"),
         AiPrompt("di1", "Show me one healthy plant and one sick plant side by side.", "मला एक चांगलं आणि एक खराब रोप शेजारी-शेजारी दाखवा.", "मुझे एक स्वस्थ पौधा और एक बीमार पौधा अगल-बगल दिखाएं।", QuestionType.CAPTURE_PHOTO, SurveyStage.AI_DAMAGE_DETECTION, DisasterType.DISEASE, nextPromptId = "di2"),
         AiPrompt("di2", "Can you break open a damaged stem and show me the inside colour?", "तुम्ही एक खराब झालेलं खोड तोडून मला आतला रंग दाखवू शकता का?", "क्या आप एक क्षतिग्रस्त तने को तोड़कर मुझे अंदर का रंग दिखा सकते हैं?", QuestionType.CAPTURE_PHOTO, SurveyStage.AI_DAMAGE_DETECTION, DisasterType.DISEASE, nextPromptId = "di3"),
         AiPrompt("di3", "Which symptom appeared first?", "कोणतं लक्षण पहिलं दिसलं?", "कौन सा लक्षण पहले दिखाई दिया?", QuestionType.VERBAL_CONFIRM, SurveyStage.AI_DAMAGE_DETECTION, DisasterType.DISEASE),
@@ -55,6 +57,7 @@ class ConversationalSurveyEngine @Inject constructor() {
         AiPrompt("c2", "Show me roots of one fallen plant — are they pulled out or stem broken?", "मला एका पडलेल्या झाडाची मुळं दाखवा — ती उपटली आहेत की खोड मोडलंय?", "मुझे एक गिरे हुए पौधे की जड़ें दिखाएं — क्या वे उखड़ी हुई हैं या तना टूटा हुआ है?", QuestionType.CAPTURE_PHOTO, SurveyStage.AI_DAMAGE_DETECTION, DisasterType.CYCLONE),
 
         // GENERIC / UNKNOWN
+        AiPrompt("g0", "Record a video sweeping across the field to show the overall crop damage.", "पिकाचे एकूण नुकसान दाखवण्यासाठी संपूर्ण शेतात कॅमेरा फिरवत एक व्हिडिओ काढा.", "फसल के कुल नुकसान को दिखाने के लिए पूरे खेत में कैमरा घुमाते हुए एक वीडियो रिकॉर्ड करें।", QuestionType.CAPTURE_VIDEO, SurveyStage.AI_DAMAGE_DETECTION, DisasterType.UNKNOWN, nextPromptId = "g1"),
         AiPrompt("g1", "Please show me the most damaged part of the field.", "कृपया मला शेताचा सर्वात जास्त खराब झालेला भाग दाखवा.", "कृपया मुझे खेत का सबसे क्षतिग्रस्त हिस्सा दिखाएं।", QuestionType.CAPTURE_PHOTO, SurveyStage.AI_DAMAGE_DETECTION, DisasterType.UNKNOWN, nextPromptId = "g2"),
         AiPrompt("g2", "Can you show a close-up of the affected crop?", "तुम्ही बाधित पिकाचा जवळून फोटो काढू शकता का?", "क्या आप प्रभावित फसल का क्लोज-अप दिखा सकते हैं?", QuestionType.CAPTURE_PHOTO, SurveyStage.AI_DAMAGE_DETECTION, DisasterType.UNKNOWN),
 

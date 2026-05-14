@@ -161,12 +161,24 @@ object PdfGenerator {
             canvas.drawText("No photographic evidence provided.", MARGIN, y + 15f, textRegularPaint)
             y += 30f
         } else {
-            var photoX = MARGIN
             val imgW = 245f
             val imgH = 320f
-            var maxHeightInRow = 0f
             
-            photos.take(2).forEachIndexed { i, photo ->
+            photos.forEachIndexed { i, photo ->
+                if (i > 0 && i % 2 == 0) {
+                    y += imgH + 40f
+                    if (y > PAGE_HEIGHT - 350f) {
+                        drawFooter(canvas, document.pages.size, refId)
+                        document.finishPage(page)
+                        page = document.startPage(pageInfo)
+                        canvas = page.canvas
+                        y = MARGIN
+                    }
+                }
+                
+                val colIndex = i % 2
+                val photoX = MARGIN + colIndex * (imgW + 25f)
+                
                 val file = File(photo.imagePath)
                 if (file.exists()) {
                     val bitmap = BitmapFactory.decodeFile(file.absolutePath)
@@ -192,13 +204,10 @@ object PdfGenerator {
                         // Caption
                         val captionY = y + imgH + 20f
                         canvas.drawText("Evidence Photo ${i+1}", photoX + imgW/2f, captionY, subTitlePaint)
-                        
-                        maxHeightInRow = maxOf(maxHeightInRow, imgH + 40f)
                     }
                 }
-                photoX += imgW + 25f
             }
-            y += maxHeightInRow + 20f
+            y += imgH + 40f + 20f
         }
 
         // New Page for next sections if needed
@@ -282,11 +291,16 @@ object PdfGenerator {
             canvas.drawText("No video evidence provided.", MARGIN + 10f, y + 17f, textRegularPaint)
             y += 35f
         } else {
-            val video = videos.first()
-            y = drawGridRow(canvas, y, listOf("Video Duration" to false, "${video.durationSeconds} seconds" to false, "GPS Verified" to false, (if (video.gpsVerified) "Yes" else "No") to false), 4)
-            val vTime = SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault()).format(Date(video.timestamp))
-            y = drawGridRow(canvas, y, listOf("Capture Timestamp" to false, vTime to false, "Keyframes Extracted" to false, "${video.keyframes.size} frames" to false), 4)
-            y += 10f
+            videos.forEachIndexed { i, video ->
+                if (videos.size > 1) {
+                    canvas.drawText("Video ${i + 1}", MARGIN, y + 15f, labelPaint)
+                    y += 25f
+                }
+                y = drawGridRow(canvas, y, listOf("Video Duration" to false, "${video.durationSeconds} seconds" to false, "GPS Verified" to false, (if (video.gpsVerified) "Yes" else "No") to false), 4)
+                val vTime = SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault()).format(Date(video.timestamp))
+                y = drawGridRow(canvas, y, listOf("Capture Timestamp" to false, vTime to false, "Keyframes Extracted" to false, "${video.keyframes.size} frames" to false), 4)
+                y += 10f
+            }
             
             // Video Summary Note
             val summaryText = "AI Observations: Farmer performed guided field sweep showing visible crop damage related to ${pkg?.disasterType?.name?.lowercase(Locale.getDefault()) ?: "disaster"}."

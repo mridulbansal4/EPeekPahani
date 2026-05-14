@@ -204,8 +204,8 @@ class LossClaimViewModel @Inject constructor(
     }
 
     fun generateEvidencePackage(isMockLocationUsed: Boolean = false) {
-        if (_capturedPhotos.value.size != 2 || _capturedVideos.value.size != 1) {
-            // Strict Validation
+        if (_capturedPhotos.value.size < 2 || _capturedVideos.value.isEmpty()) {
+            // Strict Validation - Need at least 2 photos and 1 video
             return
         }
         val durationSecs = (System.currentTimeMillis() - _surveyStartTime.value) / 1000
@@ -229,7 +229,7 @@ class LossClaimViewModel @Inject constructor(
     fun submitClaim() {
         viewModelScope.launch {
             val pkg = finalEvidencePackage ?: return@launch
-            if (pkg.photos.size != 2 || pkg.videos.size != 1) return@launch
+            if (pkg.photos.size < 2 || pkg.videos.isEmpty()) return@launch
             
             val farmer = _currentFarmer.value ?: return@launch
             
@@ -240,11 +240,11 @@ class LossClaimViewModel @Inject constructor(
                 damageType = _selectedDamageType.value,
                 damagePercentage = pkg.estimatedDamagePercentage,
                 estimatedCompensation = (pkg.estimatedDamagePercentage * 100).toDouble(), // mock logic
-                imagePath1 = pkg.photos[0].imagePath,
-                imagePath2 = pkg.photos[1].imagePath,
-                videoPath = pkg.videos[0].videoPath,
-                latitude = pkg.photos[0].latitude,
-                longitude = pkg.photos[0].longitude
+                imagePath1 = pkg.photos.getOrNull(0)?.imagePath ?: "",
+                imagePath2 = pkg.photos.getOrNull(1)?.imagePath ?: "",
+                videoPath = pkg.videos.firstOrNull()?.videoPath ?: "",
+                latitude = pkg.photos.firstOrNull()?.latitude ?: 0.0,
+                longitude = pkg.photos.firstOrNull()?.longitude ?: 0.0
             )
             repository.saveLossClaim(claim)
         }

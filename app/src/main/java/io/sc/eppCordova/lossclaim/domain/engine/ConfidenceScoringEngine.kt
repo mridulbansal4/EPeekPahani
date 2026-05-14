@@ -30,7 +30,7 @@ class ConfidenceScoringEngine @Inject constructor() {
         if (hasDisasterCorrelation) score += 40
         
         // Hard penalty if constraints not met
-        if (photoCount != 2 || videoCount != 1) {
+        if (photoCount < 2 || videoCount < 1) {
             score = minOf(score, 80) // Prevent reaching 90% threshold for early completion
         }
 
@@ -59,10 +59,8 @@ class ConfidenceScoringEngine @Inject constructor() {
         val missing = mutableListOf<String>()
         val types = observations.map { it.type }
         
-        if (photoCount < 2) missing.add("${2 - photoCount} more photo(s) required (exactly 2 needed)")
-        if (photoCount > 2) missing.add("Too many photos (exactly 2 needed, please retake or remove)")
-        if (videoCount < 1) missing.add("Video evidence required (exactly 1 needed)")
-        if (videoCount > 1) missing.add("Too many videos (exactly 1 needed, please retake or remove)")
+        if (photoCount < 2) missing.add("${2 - photoCount} more photo(s) required (at least 2 needed)")
+        if (videoCount < 1) missing.add("Video evidence required (at least 1 needed)")
         
         when (disasterType) {
             DisasterType.FLOOD -> {
