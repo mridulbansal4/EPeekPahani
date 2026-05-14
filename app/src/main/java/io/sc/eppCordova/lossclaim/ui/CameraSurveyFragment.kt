@@ -165,8 +165,10 @@ class CameraSurveyFragment : Fragment() {
             ))
         }
 
-        viewModel.currentFarmer.observe(viewLifecycleOwner) { farmer ->
-            binding.tvFarmerDetails.text = "Farmer: ${farmer?.name ?: "Unknown"}"
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.currentFarmer.collect { farmer ->
+                binding.tvFarmerDetails.text = "Farmer: ${farmer?.farmerName ?: "Unknown"}"
+            }
         }
 
         viewModel.startSurvey()

@@ -88,11 +88,47 @@
                     android:orientation="horizontal"
                     android:gravity="center_vertical">
                     
-                    <ImageView
-                        android:layout_width="48dp"
-                        android:layout_height="48dp"
-                        android:src="@android:drawable/ic_menu_agenda"
-                        app:tint="@color/error_red" />
+                    <FrameLayout
+                        android:layout_width="56dp"
+                        android:layout_height="72dp"
+                        android:background="@color/surface_container_low"
+                        android:padding="4dp">
+                        <ImageView
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:src="@drawable/ic_description"
+                            app:tint="@color/gov_green" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="bottom|center_horizontal"
+                            android:background="@color/error_red"
+                            android:paddingHorizontal="4dp"
+                            android:text="PDF"
+                            android:textColor="@color/white"
+                            android:textSize="8sp"
+                            android:textStyle="bold" />
+                    </FrameLayout>
+
+                    <FrameLayout
+                        android:id="@+id/videoThumbnailContainer"
+                        android:layout_width="72dp"
+                        android:layout_height="72dp"
+                        android:layout_marginStart="8dp"
+                        android:background="@color/black"
+                        android:visibility="gone">
+                        <ImageView
+                            android:id="@+id/ivVideoThumbnail"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:scaleType="centerCrop" />
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:layout_gravity="center"
+                            android:src="@drawable/ic_videocam"
+                            app:tint="@color/white" />
+                    </FrameLayout>
 
                     <LinearLayout
                         android:layout_width="0dp"
@@ -102,6 +138,7 @@
                         android:orientation="vertical">
                         
                         <TextView android:id="@+id/tvEvidenceCount" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Evidence Photos: 0" android:textStyle="bold"/>
+                        <TextView android:id="@+id/tvVideoCount" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Evidence Videos: 0" android:textStyle="bold"/>
                         <TextView android:id="@+id/tvDuration" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Survey Time: 0s" android:textColor="@color/text_secondary" android:textSize="12sp"/>
                     </LinearLayout>
                 </LinearLayout>
@@ -115,63 +152,91 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:background="@drawable/bg_badge_primary_container"
-                        android:padding="4dp"
+                        android:background="@drawable/bg_badge_official_verified"
+                        android:paddingHorizontal="12dp"
+                        android:paddingVertical="4dp"
                         android:text="GEO VERIFIED"
                         android:textSize="10sp"
-                        android:textColor="@color/on_primary"
+                        android:textColor="@color/white"
                         android:textStyle="bold"/>
                         
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="8dp"
-                        android:background="@drawable/bg_badge_primary_container"
-                        android:padding="4dp"
+                        android:background="@drawable/bg_badge_official_verified"
+                        android:paddingHorizontal="12dp"
+                        android:paddingVertical="4dp"
                         android:text="PMFBY READY"
                         android:textSize="10sp"
-                        android:textColor="@color/on_primary"
+                        android:textColor="@color/white"
                         android:textStyle="bold"/>
+
+                    <TextView
+                        android:id="@+id/badgeVideoVerified"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:background="@drawable/bg_badge_official_verified"
+                        android:paddingHorizontal="12dp"
+                        android:paddingVertical="4dp"
+                        android:text="VIDEO VERIFIED"
+                        android:textSize="10sp"
+                        android:textColor="@color/white"
+                        android:textStyle="bold"
+                        android:visibility="gone"/>
                 </LinearLayout>
 
-                <!-- PDF Action Buttons -->
+                <!-- Action Buttons -->
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnViewPdf"
                     android:layout_width="match_parent"
                     android:layout_height="56dp"
                     android:layout_marginTop="24dp"
                     android:text="Open Report"
+                    android:textColor="@color/white"
+                    android:backgroundTint="@color/gov_green"
                     android:textSize="16sp"
+                    app:cornerRadius="12dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnViewVideoProof"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:layout_marginTop="8dp"
+                    android:text="View Video Proof"
+                    android:textColor="@color/gov_green"
+                    android:textSize="16sp"
+                    app:strokeColor="@color/gov_green"
                     app:cornerRadius="12dp" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:layout_marginTop="8dp"
+                    android:layout_marginTop="16dp"
                     android:weightSum="2">
                     
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnDownloadPdf"
-                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        style="@style/Widget.MaterialComponents.Button.TextButton"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:layout_marginEnd="4dp"
                         android:text="Download"
-                        android:textColor="@color/text_secondary"
-                        app:strokeColor="@color/outline_variant" />
+                        android:textColor="@color/text_secondary" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnSharePdf"
-                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        style="@style/Widget.MaterialComponents.Button.TextButton"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:layout_marginStart="4dp"
                         android:text="Share"
-                        android:textColor="@color/text_secondary"
-                        app:strokeColor="@color/outline_variant" />
+                        android:textColor="@color/text_secondary" />
                 </LinearLayout>
 
             </LinearLayout>
@@ -192,10 +257,98 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:orientation="vertical">
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="✓ Survey Completed" android:textColor="@color/gov_green" android:textStyle="bold"/>
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="✓ AI Verification Completed" android:textColor="@color/gov_green" android:textStyle="bold" android:layout_marginTop="8dp"/>
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="⏳ Officer Review Pending" android:textColor="@color/text_secondary" android:layout_marginTop="8dp"/>
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="⏳ Compensation Decision Pending" android:textColor="@color/text_secondary" android:layout_marginTop="8dp"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@drawable/ic_check_circle"
+                    app:tint="@color/gov_green" />
+                <TextView 
+                    android:layout_width="wrap_content" 
+                    android:layout_height="wrap_content" 
+                    android:layout_marginStart="12dp"
+                    android:text="Survey Completed" 
+                    android:textColor="@color/gov_green" 
+                    android:textStyle="bold"/>
+            </LinearLayout>
+
+            <View
+                android:layout_width="2dp"
+                android:layout_height="16dp"
+                android:layout_marginStart="9dp"
+                android:background="@color/gov_green" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@drawable/ic_check_circle"
+                    app:tint="@color/gov_green" />
+                <TextView 
+                    android:layout_width="wrap_content" 
+                    android:layout_height="wrap_content" 
+                    android:layout_marginStart="12dp"
+                    android:text="AI Verification Completed" 
+                    android:textColor="@color/gov_green" 
+                    android:textStyle="bold"/>
+            </LinearLayout>
+
+            <View
+                android:layout_width="2dp"
+                android:layout_height="16dp"
+                android:layout_marginStart="9dp"
+                android:background="@color/outline_variant" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@drawable/ic_radio_button_unchecked"
+                    app:tint="@color/text_secondary" />
+                <TextView 
+                    android:layout_width="wrap_content" 
+                    android:layout_height="wrap_content" 
+                    android:layout_marginStart="12dp"
+                    android:text="Officer Review Pending" 
+                    android:textColor="@color/text_secondary"/>
+            </LinearLayout>
+
+            <View
+                android:layout_width="2dp"
+                android:layout_height="16dp"
+                android:layout_marginStart="9dp"
+                android:background="@color/outline_variant" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@drawable/ic_radio_button_unchecked"
+                    app:tint="@color/text_secondary" />
+                <TextView 
+                    android:layout_width="wrap_content" 
+                    android:layout_height="wrap_content" 
+                    android:layout_marginStart="12dp"
+                    android:text="Compensation Decision Pending" 
+                    android:textColor="@color/text_secondary"/>
+            </LinearLayout>
         </LinearLayout>
 
         <TextView

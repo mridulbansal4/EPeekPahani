@@ -43,6 +43,7 @@
         </activity>
 
         <activity android:name=".ui.lossclaim.VideoPlayerActivity" />
+        <activity android:name=".lossclaim.ui.VideoEvidenceViewerActivity" />
 
         <service
             android:name=".service.EPeekPahaniFcmService"

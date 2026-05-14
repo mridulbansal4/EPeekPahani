@@ -68,9 +68,38 @@ class ClaimResultFragment : Fragment() {
         val duration = if (lastTime > firstTime) (lastTime - firstTime) / 1000 else 60 // fallback to 60s
         
         binding.tvEvidenceCount.text = "Evidence Photos: ${pkg?.photos?.size ?: 0}"
+        val videoCount = pkg?.videos?.size ?: 0
+        binding.tvVideoCount.text = "Evidence Videos: $videoCount"
+        if (videoCount > 0) {
+            binding.badgeVideoVerified.visibility = View.VISIBLE
+            binding.videoThumbnailContainer.visibility = View.VISIBLE
+            val firstVideoPath = pkg?.videos?.firstOrNull()?.videoPath
+            if (!firstVideoPath.isNullOrEmpty()) {
+                com.bumptech.glide.Glide.with(this)
+                    .load(java.io.File(firstVideoPath))
+                    .into(binding.ivVideoThumbnail)
+            }
+        } else {
+            binding.badgeVideoVerified.visibility = View.GONE
+            binding.videoThumbnailContainer.visibility = View.GONE
+        }
         binding.tvDuration.text = "Survey Time: ${duration}s"
 
         // Setup Buttons
+        binding.btnViewVideoProof.setOnClickListener {
+            if (pkg != null && pkg.videos.isNotEmpty()) {
+                val videosJson = com.google.gson.Gson().toJson(pkg.videos)
+                val villageGat = "Village: ${farmer?.village} | Gat: ${farmer?.gatNumber}"
+                val disasterType = pkg.disasterType.name
+                VideoEvidenceViewerActivity.start(requireContext(), videosJson, villageGat, disasterType)
+            } else {
+                Toast.makeText(requireContext(), "No Video Evidence Available", Toast.LENGTH_SHORT).show()
+            }
+        }
+        
+        binding.btnViewVideoProof.isEnabled = videoCount > 0
+        binding.btnViewVideoProof.alpha = if (videoCount > 0) 1.0f else 0.5f
+
         binding.btnViewPdf.setOnClickListener {
             if (generatedPdfFile != null) {
                 openPdf(generatedPdfFile!!)
