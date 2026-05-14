@@ -37,6 +37,15 @@ class MockApiInterceptor(private val context: Context) : Interceptor {
                   {"gutNo":"88","khataNo":"143","ownerName":"सुनिता पाटील","areaHectares":0.80,"villageId":1}
                 ]"""
 
+            path.contains("upload") ->
+                """{"success":true,"url":"https://mock-storage.gov/evidence/mock.jpg","message":"Uploaded successfully"}"""
+
+            path.contains("claims") || path.contains("surveys") ->
+                """{"claimId":"REP-12345","farmerId":"Mock","workflowStage":"AI Verification","createdAt":"2026-05-15"}"""
+
+            path.contains("reports") ->
+                """{"reportId":"REP-12345","workflowStage":"AI Analysis Passed","confidenceScore":92.5,"geoVerified":true,"severityLevel":"High","aiRemarks":"Visible damage identified by AI matches selected disaster.","officerRemarks":null,"assignedOfficer":"Verification Desk A","createdAt":"2026-05-15"}"""
+
             path.contains("submitSurvey") ->
                 """{"success":true,"message":"Survey submitted successfully"}"""
 

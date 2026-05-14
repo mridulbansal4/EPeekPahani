@@ -13,6 +13,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.File
 
@@ -75,14 +76,13 @@ class OfflineSyncWorker @AssistedInject constructor(
         if (!file.exists()) return null
 
         return try {
-            val bytes = file.readBytes()
             val mimeType = if (filePath.endsWith(".mp4", true)) "video/mp4" else "image/jpeg"
-            val requestBody = bytes.toRequestBody(mimeType.toMediaTypeOrNull())
+            val requestBody = file.asRequestBody(mimeType.toMediaTypeOrNull())
             val part = MultipartBody.Part.createFormData("file", file.name, requestBody)
             
             val response = backendApi.uploadFile(part)
             if (response.isSuccessful) {
-                response.body()?.url ?: "https://mock-url.com/${file.name}"
+                response.body()?.path ?: response.body()?.url ?: file.name
             } else {
                 null
             }

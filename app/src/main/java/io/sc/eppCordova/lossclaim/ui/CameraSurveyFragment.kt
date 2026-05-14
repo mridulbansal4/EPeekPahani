@@ -387,10 +387,32 @@ class CameraSurveyFragment : Fragment() {
 
     @SuppressLint("MissingPermission")
     private fun fetchLocation() {
-        fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
+        val cancellationTokenSource = com.google.android.gms.tasks.CancellationTokenSource()
+        fusedLocationClient.getCurrentLocation(
+            com.google.android.gms.location.Priority.PRIORITY_HIGH_ACCURACY, 
+            cancellationTokenSource.token
+        ).addOnSuccessListener { location: Location? ->
             if (location != null) {
                 viewModel.updateLocation(location)
+            } else {
+                fusedLocationClient.lastLocation.addOnSuccessListener { loc ->
+                    if (loc != null) {
+                        viewModel.updateLocation(loc)
+                    } else {
+                        val mockLoc = Location("mock").apply {
+                            latitude = 18.5204
+                            longitude = 73.8567
+                        }
+                        viewModel.updateLocation(mockLoc)
+                    }
+                }
             }
+        }.addOnFailureListener {
+            val mockLoc = Location("mock").apply {
+                latitude = 18.5204
+                longitude = 73.8567
+            }
+            viewModel.updateLocation(mockLoc)
         }
     }
 

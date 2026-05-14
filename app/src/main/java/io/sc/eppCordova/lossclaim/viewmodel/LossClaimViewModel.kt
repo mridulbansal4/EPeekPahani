@@ -1,6 +1,7 @@
 package io.sc.eppCordova.lossclaim.viewmodel
 
 import android.location.Location
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -69,12 +70,12 @@ class LossClaimViewModel @Inject constructor(
 
     sealed class BackendSubmitState {
         data object IDLE : BackendSubmitState()
-        data object UPLOADING : BackendSubmitState()
-        data class UPLOAD_PROGRESS(val current: Int, val total: Int) : BackendSubmitState()
-        data class UPLOAD_FAILED(val message: String, val failedFiles: List<String>) : BackendSubmitState()
-        data object SUBMITTING : BackendSubmitState()
-        data object FETCHING_REPORT : BackendSubmitState()
-        data object SUCCESS : BackendSubmitState()
+        data class UPLOADING_FILES(val current: Int, val total: Int) : BackendSubmitState()
+        data object FILES_UPLOADED : BackendSubmitState()
+        data object SYNCING_METADATA : BackendSubmitState()
+        data object PROCESSING : BackendSubmitState()
+        data object COMPLETED : BackendSubmitState()
+        data class RETRY_PENDING(val message: String) : BackendSubmitState()
         data class ERROR(val message: String) : BackendSubmitState()
     }
 
@@ -276,46 +277,66 @@ class LossClaimViewModel @Inject constructor(
             repository.saveLossClaim(claim)
 
             val totalFiles = pkg.photos.size + pkg.videos.size
-            _backendSubmitState.value = BackendSubmitState.UPLOADING
+            Log.d("LossClaimVM", "Starting upload. Total files: $totalFiles")
+            _backendSubmitState.value = BackendSubmitState.UPLOADING_FILES(0, totalFiles)
 
             val uploadedEvidence = mutableListOf<UploadedEvidenceDto>()
             val failedFiles = mutableListOf<String>()
 
             for ((index, photo) in pkg.photos.withIndex()) {
-                _backendSubmitState.value = BackendSubmitState.UPLOAD_PROGRESS(index + 1, totalFiles)
+                _backendSubmitState.value = BackendSubmitState.UPLOADING_FILES(index + 1, totalFiles)
                 val file = File(photo.imagePath)
                 if (!file.exists()) {
+                    Log.e("LossClaimVM", "Photo file missing: ${photo.imagePath}")
                     failedFiles.add(photo.imagePath)
                     continue
                 }
+                Log.d("LossClaimVM", "Uploading photo: ${file.name}")
                 when (val result = evidenceUploadRepository.uploadSingleFile(file, "image/jpeg", farmer.mobileNumber)) {
-                    is ApiResult.Success -> uploadedEvidence.add(result.data)
-                    is ApiResult.Error -> failedFiles.add(file.name)
+                    is ApiResult.Success -> {
+                        Log.d("LossClaimVM", "Photo uploaded: ${result.data.path}")
+                        uploadedEvidence.add(result.data)
+                    }
+                    is ApiResult.Error -> {
+                        Log.e("LossClaimVM", "Photo upload failed: ${result.message}")
+                        failedFiles.add(file.name)
+                    }
                 }
             }
 
             for ((index, video) in pkg.videos.withIndex()) {
-                _backendSubmitState.value = BackendSubmitState.UPLOAD_PROGRESS(pkg.photos.size + index + 1, totalFiles)
+                _backendSubmitState.value = BackendSubmitState.UPLOADING_FILES(pkg.photos.size + index + 1, totalFiles)
                 val file = File(video.videoPath)
                 if (!file.exists()) {
+                    Log.e("LossClaimVM", "Video file missing: ${video.videoPath}")
                     failedFiles.add(video.videoPath)
                     continue
                 }
+                Log.d("LossClaimVM", "Uploading video: ${file.name}")
                 when (val result = evidenceUploadRepository.uploadSingleFile(file, "video/mp4", farmer.mobileNumber)) {
-                    is ApiResult.Success -> uploadedEvidence.add(result.data)
-                    is ApiResult.Error -> failedFiles.add(file.name)
+                    is ApiResult.Success -> {
+                        Log.d("LossClaimVM", "Video uploaded: ${result.data.path}")
+                        uploadedEvidence.add(result.data)
+                    }
+                    is ApiResult.Error -> {
+                        Log.e("LossClaimVM", "Video upload failed: ${result.message}")
+                        failedFiles.add(file.name)
+                    }
                 }
             }
 
             if (failedFiles.isNotEmpty() && uploadedEvidence.isEmpty()) {
-                _backendSubmitState.value = BackendSubmitState.UPLOAD_FAILED(
-                    message = "All uploads failed. Check connection and retry.",
-                    failedFiles = failedFiles
+                Log.e("LossClaimVM", "All uploads failed")
+                _backendSubmitState.value = BackendSubmitState.RETRY_PENDING(
+                    message = "Media upload failed. Will retry in background."
                 )
                 return@launch
             }
 
-            _backendSubmitState.value = BackendSubmitState.SUBMITTING
+            _backendSubmitState.value = BackendSubmitState.FILES_UPLOADED
+            _backendSubmitState.value = BackendSubmitState.SYNCING_METADATA
+
+            Log.d("LossClaimVM", "Submitting claim JSON with ${uploadedEvidence.size} evidence files")
             val request = ClaimRequest(
                 farmerId = farmer.mobileNumber,
                 cropType = farmer.primaryCrop ?: "Unknown",
@@ -332,24 +353,27 @@ class LossClaimViewModel @Inject constructor(
 
             when (val result = claimsRepository.submitClaim(request)) {
                 is ApiResult.Success -> {
+                    Log.d("LossClaimVM", "Claim submitted successfully. ID: ${result.data.claimId}")
                     val claimId = result.data.claimId
                     if (claimId != null) {
-                        _backendSubmitState.value = BackendSubmitState.FETCHING_REPORT
+                        _backendSubmitState.value = BackendSubmitState.PROCESSING
                         when (val reportResult = reportRepository.getReportById(claimId)) {
                             is ApiResult.Success -> {
                                 _generatedReport.value = reportResult.data
-                                _backendSubmitState.value = BackendSubmitState.SUCCESS
+                                _backendSubmitState.value = BackendSubmitState.COMPLETED
                             }
                             is ApiResult.Error -> {
-                                _backendSubmitState.value = BackendSubmitState.SUCCESS
+                                Log.e("LossClaimVM", "Failed to fetch report: ${reportResult.message}")
+                                _backendSubmitState.value = BackendSubmitState.COMPLETED
                             }
                         }
                     } else {
-                        _backendSubmitState.value = BackendSubmitState.SUCCESS
+                        _backendSubmitState.value = BackendSubmitState.COMPLETED
                     }
                 }
                 is ApiResult.Error -> {
-                    _backendSubmitState.value = BackendSubmitState.ERROR(result.message)
+                    Log.e("LossClaimVM", "Claim submission failed: ${result.message}")
+                    _backendSubmitState.value = BackendSubmitState.RETRY_PENDING("Metadata sync failed. Queued for offline sync.")
                 }
             }
         }

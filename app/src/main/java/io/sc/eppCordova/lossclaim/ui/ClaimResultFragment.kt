@@ -106,32 +106,33 @@ class ClaimResultFragment : Fragment() {
                 viewModel.backendSubmitState.collect { state ->
                     when (state) {
                         is LossClaimViewModel.BackendSubmitState.IDLE -> {}
-                        is LossClaimViewModel.BackendSubmitState.UPLOADING -> {
-                            binding.btnSubmitClaim.text = "Uploading evidence..."
+                        is LossClaimViewModel.BackendSubmitState.UPLOADING_FILES -> {
+                            binding.btnSubmitClaim.text = "Uploading Media ${state.current}/${state.total}..."
                             binding.btnSubmitClaim.isEnabled = false
                         }
-                        is LossClaimViewModel.BackendSubmitState.UPLOAD_PROGRESS -> {
-                            binding.btnSubmitClaim.text = "Uploading ${state.current}/${state.total}"
+                        is LossClaimViewModel.BackendSubmitState.FILES_UPLOADED -> {
+                            binding.btnSubmitClaim.text = "Files Uploaded"
                             binding.btnSubmitClaim.isEnabled = false
                         }
-                        is LossClaimViewModel.BackendSubmitState.UPLOAD_FAILED -> {
-                            binding.btnSubmitClaim.text = "Upload Failed"
-                            binding.btnSubmitClaim.isEnabled = true
-                            Snackbar.make(binding.root, state.message, Snackbar.LENGTH_LONG)
-                                .setAction("Retry") { viewModel.retryUpload() }
-                                .show()
-                        }
-                        is LossClaimViewModel.BackendSubmitState.SUBMITTING -> {
-                            binding.btnSubmitClaim.text = "Submitting..."
+                        is LossClaimViewModel.BackendSubmitState.SYNCING_METADATA -> {
+                            binding.btnSubmitClaim.text = "Syncing Metadata..."
                             binding.btnSubmitClaim.isEnabled = false
                         }
-                        is LossClaimViewModel.BackendSubmitState.FETCHING_REPORT -> {
-                            binding.btnSubmitClaim.text = "Generating Report..."
+                        is LossClaimViewModel.BackendSubmitState.PROCESSING -> {
+                            binding.btnSubmitClaim.text = "Processing on Backend..."
+                            binding.btnSubmitClaim.isEnabled = false
                         }
-                        is LossClaimViewModel.BackendSubmitState.SUCCESS -> {
-                            binding.btnSubmitClaim.text = "Done"
+                        is LossClaimViewModel.BackendSubmitState.COMPLETED -> {
+                            binding.btnSubmitClaim.text = "Upload Completed"
                             binding.btnSubmitClaim.isEnabled = true
                             showReportFromBackend()
+                        }
+                        is LossClaimViewModel.BackendSubmitState.RETRY_PENDING -> {
+                            binding.btnSubmitClaim.text = "Retrying Sync"
+                            binding.btnSubmitClaim.isEnabled = true
+                            Snackbar.make(binding.root, state.message as CharSequence, Snackbar.LENGTH_LONG)
+                                .setAction("Retry") { viewModel.retryUpload() }
+                                .show()
                         }
                         is LossClaimViewModel.BackendSubmitState.ERROR -> {
                             binding.btnSubmitClaim.text = "Done"

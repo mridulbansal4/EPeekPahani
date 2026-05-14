@@ -9,6 +9,7 @@ import androidx.work.NetworkType
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import dagger.hilt.android.HiltAndroidApp
+import io.sc.eppCordova.lossclaim.data.OfflineSyncWorker
 import io.sc.eppCordova.worker.SyncWorker
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
@@ -33,5 +34,12 @@ class EPeekPahaniApp : Application(), Configuration.Provider {
             .build()
         WorkManager.getInstance(this).enqueueUniquePeriodicWork(
             "crop_sync", ExistingPeriodicWorkPolicy.KEEP, syncRequest)
+
+        val offlineSyncRequest = PeriodicWorkRequestBuilder<OfflineSyncWorker>(15, TimeUnit.MINUTES)
+            .setConstraints(Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.CONNECTED).build())
+            .build()
+        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
+            "offline_claim_sync", ExistingPeriodicWorkPolicy.KEEP, offlineSyncRequest)
     }
 }
