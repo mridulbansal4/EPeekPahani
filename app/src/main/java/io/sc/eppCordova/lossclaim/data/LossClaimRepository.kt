@@ -1,9 +1,13 @@
 package io.sc.eppCordova.lossclaim.data
 
 import android.content.Context
+import dagger.hilt.android.qualifiers.ApplicationContext
 import io.sc.eppCordova.data.local.CsvParserService
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class LossClaimRepository(private val dao: LossClaimDao, private val context: Context) {
+@Singleton
+class LossClaimRepository @Inject constructor(private val dao: LossClaimDao, @ApplicationContext private val context: Context) {
     private val csvParser = CsvParserService(context)
 
     suspend fun getFarmerByMobile(mobile: String): FarmerEntity? {

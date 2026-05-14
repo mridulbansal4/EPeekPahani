@@ -33,12 +33,15 @@ class ClaimResultFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Generate data based on Farmer responses and AI observation
-        val damagePercent = if (viewModel.damagePercentageEstimate > 0) viewModel.damagePercentageEstimate else 65
+        val pkg = viewModel.finalEvidencePackage
+        val damagePercent = pkg?.estimatedDamagePercentage ?: 0
         val payout = 30000.0 * (damagePercent / 100.0)
         
         binding.tvDamageScore.text = "$damagePercent%"
         binding.tvPayoutEstimate.text = "₹${payout.toInt()}"
+        
+        // Show AI completeness score and fraud risk if applicable
+        // binding.tvAiScore.text = "Evidence Completeness: ${pkg?.completenessScore ?: 0}%"
         
         val farmer = viewModel.currentFarmer.value
         val photos = viewModel.capturedPhotos.value
@@ -61,11 +64,12 @@ class ClaimResultFragment : Fragment() {
         binding.btnSubmitClaim.setOnClickListener {
             if (generatedPdfFile != null) {
                 Toast.makeText(requireContext(), "Survey Report Saved! Claim Submitted.", Toast.LENGTH_LONG).show()
-                viewModel.submitClaim(damagePercent, payout, generatedPdfFile!!.absolutePath)
+                viewModel.submitClaim()
                 openPdf(generatedPdfFile!!)
                 requireActivity().finish()
             } else {
                 Toast.makeText(requireContext(), "Survey completed and data saved offline securely.", Toast.LENGTH_LONG).show()
+                viewModel.submitClaim()
                 requireActivity().finish()
             }
         }

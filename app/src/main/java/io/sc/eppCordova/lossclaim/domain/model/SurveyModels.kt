@@ -22,7 +22,9 @@ enum class QuestionType {
     YES_NO,
     SLIDER,
     OPTIONS,
-    CAPTURE_PHOTO
+    CAPTURE_PHOTO,
+    VERBAL_CONFIRM,
+    END_SURVEY
 }
 
 data class AiPrompt(
@@ -33,8 +35,8 @@ data class AiPrompt(
     val type: QuestionType,
     val stage: SurveyStage,
     val requiredDisaster: DisasterType? = null,
-    val options: List<String> = emptyList(), // For OPTIONS type
-    val nextPromptId: String? = null // For static flows, otherwise engine determines
+    val options: List<String> = emptyList(),
+    val nextPromptId: String? = null
 )
 
 data class EvidencePhoto(
@@ -43,5 +45,41 @@ data class EvidencePhoto(
     val longitude: Double,
     val timestamp: Long,
     val disasterType: String,
-    val gatNumber: String
+    val gatNumber: String,
+    val observations: List<String> = emptyList(),
+    val isClear: Boolean = true
+)
+
+data class VoiceInteraction(
+    val promptId: String,
+    val rawAudioPath: String,
+    val transcript: String,
+    val extractedSemantics: Map<String, Any>,
+    val confidenceScore: Float
+)
+
+data class AiObservation(
+    val type: String, // e.g., "yellow_leaves", "waterlogging"
+    val confidence: Float,
+    val timestamp: Long,
+    val sourceImage: String
+)
+
+data class FraudAnalysis(
+    val riskScore: Int, // 0-100
+    val flags: List<String>,
+    val autoReject: Boolean
+)
+
+data class EvidencePackage(
+    val farmerId: String,
+    val gatNumber: String,
+    val disasterType: DisasterType,
+    val photos: List<EvidencePhoto>,
+    val voiceInteractions: List<VoiceInteraction>,
+    val observations: List<AiObservation>,
+    val fraudAnalysis: FraudAnalysis,
+    val completenessScore: Int,
+    val recommendation: String,
+    val estimatedDamagePercentage: Int
 )

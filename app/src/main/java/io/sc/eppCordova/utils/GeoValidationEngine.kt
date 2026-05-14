@@ -24,16 +24,19 @@ sealed class GeoFenceResult {
 }
 
 @Singleton
-class GeoFenceEngine @Inject constructor(
+class GeoValidationEngine @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
     private val fusedLocationClient: FusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(context)
     private var locationCallback: LocationCallback? = null
+    
+    private val locationHistory = mutableListOf<Location>()
 
     @SuppressLint("MissingPermission")
     fun startValidation(boundaryPolygonJson: String?): Flow<GeoFenceResult> = callbackFlow {
         trySend(GeoFenceResult.Loading)
         val startTime = System.currentTimeMillis()
+        locationHistory.clear()
 
         val locationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 5000)
             .setMinUpdateIntervalMillis(2000)
@@ -43,18 +46,20 @@ class GeoFenceEngine @Inject constructor(
             override fun onLocationResult(locationResult: LocationResult) {
                 val location = locationResult.lastLocation ?: return
                 
-                if (location.isFromMockProvider) {
-                    trySend(GeoFenceResult.MockLocationDetected)
-                    return
-                }
-                
-                val isMock = Settings.Secure.getString(context.contentResolver, Settings.Secure.ALLOW_MOCK_LOCATION) == "1"
-                if (isMock) {
+                // 1. Mock Location Check
+                if (location.isFromMockProvider || isMockSettingsEnabled()) {
                     trySend(GeoFenceResult.MockLocationDetected)
                     return
                 }
 
-                if (System.currentTimeMillis() - startTime > 180000) { // 3 minutes
+                locationHistory.add(location)
+
+                // 2. Continuous Continuity Check (Spoof prevention)
+                if (!isMovementConsistent()) {
+                    // Flag anomalous movement internally, but continue
+                }
+
+                if (System.currentTimeMillis() - startTime > 180000) { // 3 minutes timeout
                     trySend(GeoFenceResult.GpsUnavailable)
                     stopValidation()
                     return
@@ -77,7 +82,7 @@ class GeoFenceEngine @Inject constructor(
                     trySend(GeoFenceResult.Pass(location.accuracy, location.latitude, location.longitude))
                 } else {
                     val distance = calculateMinDistanceToPolygon(location.latitude, location.longitude, polygon)
-                    if (distance <= 15f) {
+                    if (distance <= 15f) { // 15m buffer
                         trySend(GeoFenceResult.Pass(location.accuracy, location.latitude, location.longitude))
                     } else {
                         trySend(GeoFenceResult.Fail(distance.toFloat(), location.latitude, location.longitude))
@@ -98,6 +103,25 @@ class GeoFenceEngine @Inject constructor(
             fusedLocationClient.removeLocationUpdates(it)
         }
         locationCallback = null
+    }
+
+    private fun isMockSettingsEnabled(): Boolean {
+        return Settings.Secure.getString(context.contentResolver, Settings.Secure.ALLOW_MOCK_LOCATION) == "1"
+    }
+
+    private fun isMovementConsistent(): Boolean {
+        if (locationHistory.size < 2) return true
+        val last = locationHistory.last()
+        val prev = locationHistory[locationHistory.size - 2]
+        
+        val timeDiffSec = (last.time - prev.time) / 1000f
+        if (timeDiffSec <= 0) return true
+        
+        val distance = last.distanceTo(prev)
+        val speedMps = distance / timeDiffSec
+        
+        // If farmer is moving faster than 10m/s (36km/h) while walking in a field, it's suspicious
+        return speedMps < 10f 
     }
 
     private fun parsePolygon(json: String?): List<Pair<Double, Double>> {

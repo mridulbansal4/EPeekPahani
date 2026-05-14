@@ -1,0 +1,84 @@
+{
+  "survey_id": "SURVEY-98237498-2023",
+  "timestamp": "2023-11-14T09:30:15Z",
+  "farmer_details": {
+    "farmer_id": "FMR-8392",
+    "name": "Ramesh Kumar",
+    "mobile_number": "9876543210",
+    "village": "Shirur",
+    "gat_number": "102"
+  },
+  "survey_metadata": {
+    "disaster_type": "FLOOD",
+    "crop_type": "Soybean",
+    "survey_duration_seconds": 185,
+    "is_mock_location_used": false
+  },
+  "evidence_package": {
+    "completeness_score": 95,
+    "estimated_damage_percentage": 65,
+    "recommendation": "APPROVE_PAYOUT",
+    "fraud_analysis": {
+      "risk_score": 10,
+      "flags": [],
+      "auto_reject": false
+    },
+    "photos": [
+      {
+        "image_path": "/storage/emulated/0/Android/media/io.sc.eppCordova/evidence_1699954215000.jpg",
+        "latitude": 18.5204,
+        "longitude": 73.8567,
+        "timestamp": 1699954215000,
+        "disaster_type": "FLOOD",
+        "gat_number": "102",
+        "observations": ["waterlogging", "yellow_leaves"],
+        "is_clear": true
+      },
+      {
+        "image_path": "/storage/emulated/0/Android/media/io.sc.eppCordova/evidence_1699954285000.jpg",
+        "latitude": 18.5205,
+        "longitude": 73.8568,
+        "timestamp": 1699954285000,
+        "disaster_type": "FLOOD",
+        "gat_number": "102",
+        "observations": ["waterlogging", "soil"],
+        "is_clear": true
+      }
+    ],
+    "voice_interactions": [
+      {
+        "prompt_id": "d_chlorosis",
+        "raw_audio_path": "/data/user/0/io.sc.eppCordova/cache/audio_1699954230000.wav",
+        "transcript": "दोन दिवस पाणी होतं",
+        "extracted_semantics": {
+          "flood_duration_days": 2,
+          "water_present": true
+        },
+        "confidence_score": 0.92
+      },
+      {
+        "prompt_id": "q3",
+        "raw_audio_path": "/data/user/0/io.sc.eppCordova/cache/audio_1699954315000.wav",
+        "transcript": "साठ टक्के नुकसान झालंय",
+        "extracted_semantics": {
+          "damage_percentage": "60"
+        },
+        "confidence_score": 0.88
+      }
+    ],
+    "ai_observations": [
+      {
+        "type": "waterlogging",
+        "confidence": 0.95,
+        "timestamp": 1699954215000,
+        "source_image": "/storage/emulated/0/Android/media/io.sc.eppCordova/evidence_1699954215000.jpg"
+      },
+      {
+        "type": "yellow_leaves",
+        "confidence": 0.85,
+        "timestamp": 1699954215000,
+        "source_image": "/storage/emulated/0/Android/media/io.sc.eppCordova/evidence_1699954215000.jpg"
+      }
+    ]
+  }
+}

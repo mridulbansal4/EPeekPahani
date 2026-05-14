@@ -25,6 +25,7 @@ import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import io.sc.eppCordova.R
 import io.sc.eppCordova.databinding.FragmentCameraSurveyBinding
+import io.sc.eppCordova.lossclaim.domain.engine.SurveyState
 import io.sc.eppCordova.lossclaim.domain.model.QuestionType
 import io.sc.eppCordova.lossclaim.domain.model.SurveyStage
 import io.sc.eppCordova.lossclaim.viewmodel.LossClaimViewModel
@@ -45,16 +46,21 @@ class CameraSurveyFragment : Fragment() {
     private lateinit var cameraExecutor: ExecutorService
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private var tts: TextToSpeech? = null
+    
+    // Simulate audio recording
+    private var isRecording = false
+    private var currentAudioFile: File? = null
 
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
         if (permissions[Manifest.permission.CAMERA] == true && 
-            permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true) {
+            permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true &&
+            permissions[Manifest.permission.RECORD_AUDIO] == true) {
             startCamera()
             fetchLocation()
         } else {
-            Toast.makeText(requireContext(), "Camera and Location permissions required", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), "Camera, Location and Mic permissions required", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -84,58 +90,90 @@ class CameraSurveyFragment : Fragment() {
         } else {
             requestPermissionLauncher.launch(arrayOf(
                 Manifest.permission.CAMERA,
-                Manifest.permission.ACCESS_FINE_LOCATION
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.RECORD_AUDIO
             ))
         }
 
         viewModel.startSurvey()
 
         viewLifecycleOwner.lifecycleScope.launch {
-            viewModel.currentPrompt.collect { prompt ->
-                if (prompt == null) return@collect
-                
-                binding.tvAiInstruction.text = prompt.textEnglish
-                binding.tvStepProgress.text = "Stage: ${prompt.stage.name.replace("_", " ")}"
-                
-                // Read text out loud
-                tts?.speak(prompt.textMarathi, TextToSpeech.QUEUE_FLUSH, null, null)
+            viewModel.surveyState.collect { state ->
+                when (state) {
+                    is SurveyState.Idle -> { }
+                    is SurveyState.Active -> {
+                        val prompt = state.currentPrompt
+                        binding.tvAiInstruction.text = prompt.textMarathi
+                        binding.tvStepProgress.text = "Stage: ${prompt.stage.name.replace("_", " ")}"
+                        
+                        tts?.speak(prompt.textMarathi, TextToSpeech.QUEUE_FLUSH, null, null)
 
-                if (prompt.stage == SurveyStage.FARMER_CONFIRMATION) {
-                    findNavController().navigate(R.id.action_camera_to_processing) // Move to next screen for Q&A
-                    return@collect
-                }
-
-                when (prompt.type) {
-                    QuestionType.CAPTURE_PHOTO -> {
-                        binding.btnNextStep.text = "Capture Evidence"
+                        setupInputMode(prompt.type, prompt.id)
+                    }
+                    is SurveyState.Reviewing -> {
+                        binding.tvAiInstruction.text = "Some evidence is missing: ${state.missingEvidence.joinToString()}. Please review."
+                        binding.btnNextStep.text = "Finish Anyway"
                         binding.btnNextStep.setOnClickListener {
-                            takePhoto()
+                            viewModel.generateEvidencePackage()
+                            findNavController().navigate(R.id.action_camera_to_processing)
                         }
                     }
-                    QuestionType.INFO -> {
-                        binding.btnNextStep.text = "Understood"
-                        binding.btnNextStep.setOnClickListener {
-                            viewModel.advanceFlow()
-                        }
-                    }
-                    QuestionType.YES_NO -> {
-                        binding.btnNextStep.text = "Yes / No (Tap to skip mock)"
-                        binding.btnNextStep.setOnClickListener {
-                            viewModel.advanceFlow()
-                        }
-                    }
-                    QuestionType.OPTIONS -> {
-                        binding.btnNextStep.text = "Select Option (Tap to skip mock)"
-                        binding.btnNextStep.setOnClickListener {
-                            viewModel.advanceFlow()
-                        }
-                    }
-                    else -> {
-                        binding.btnNextStep.text = "Next"
-                        binding.btnNextStep.setOnClickListener { viewModel.advanceFlow() }
+                    is SurveyState.Completed -> {
+                        binding.tvAiInstruction.text = "Survey completed successfully. Generating package..."
+                        viewModel.generateEvidencePackage()
+                        findNavController().navigate(R.id.action_camera_to_processing)
                     }
                 }
             }
+        }
+    }
+
+    private fun setupInputMode(type: QuestionType, promptId: String) {
+        when (type) {
+            QuestionType.CAPTURE_PHOTO -> {
+                binding.btnNextStep.text = "Capture Photo"
+                binding.btnNextStep.setOnClickListener { takePhoto() }
+            }
+            QuestionType.VERBAL_CONFIRM -> {
+                binding.btnNextStep.text = "Hold to Speak"
+                binding.btnNextStep.setOnTouchListener { _, event ->
+                    when (event.action) {
+                        android.view.MotionEvent.ACTION_DOWN -> {
+                            startRecording()
+                            binding.btnNextStep.text = "Listening..."
+                            true
+                        }
+                        android.view.MotionEvent.ACTION_UP -> {
+                            stopRecording(promptId)
+                            binding.btnNextStep.text = "Processing Voice..."
+                            true
+                        }
+                        else -> false
+                    }
+                }
+            }
+            QuestionType.INFO -> {
+                binding.btnNextStep.text = "Next"
+                binding.btnNextStep.setOnClickListener { viewModel.skipCurrentPrompt() }
+            }
+            else -> {
+                binding.btnNextStep.text = "Skip"
+                binding.btnNextStep.setOnClickListener { viewModel.skipCurrentPrompt() }
+            }
+        }
+    }
+
+    private fun startRecording() {
+        isRecording = true
+        currentAudioFile = File(requireContext().cacheDir, "audio_${System.currentTimeMillis()}.wav")
+        // Normally start MediaRecorder here
+    }
+
+    private fun stopRecording(promptId: String) {
+        isRecording = false
+        // Normally stop MediaRecorder here
+        currentAudioFile?.let {
+            viewModel.processAudioResponse(it, promptId)
         }
     }
 
@@ -152,7 +190,7 @@ class CameraSurveyFragment : Fragment() {
         val imageCapture = imageCapture ?: return
         
         @Suppress("DEPRECATION")
-        val photoFile = File(requireContext().externalMediaDirs.firstOrNull(), "loss_claim_${System.currentTimeMillis()}.jpg")
+        val photoFile = File(requireContext().externalMediaDirs.firstOrNull(), "evidence_${System.currentTimeMillis()}.jpg")
         val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
 
         binding.btnNextStep.isEnabled = false
@@ -174,20 +212,8 @@ class CameraSurveyFragment : Fragment() {
                     val gat = viewModel.currentFarmer.value?.gatNumber ?: "N/A"
                     val disaster = viewModel.selectedDamageType.value
 
-                    // Add watermark
                     ImageUtils.addGeoWatermark(photoFile, lat, lon, gat, disaster)
-                    
-                    viewModel.addPhoto(photoFile.absolutePath)
-                    
-                    // After taking a photo, simulate an observation and advance the flow
-                    val simulatedObservation = when (viewModel.selectedDamageType.value.uppercase()) {
-                        "FLOOD" -> "waterlogging"
-                        "DISEASE" -> "damaged_leaves"
-                        "HAILSTORM" -> "damaged_leaves"
-                        else -> null
-                    }
-                    
-                    viewModel.advanceFlow(simulatedObservation)
+                    viewModel.processCapturedPhoto(photoFile.absolutePath)
                     
                     binding.btnNextStep.isEnabled = true
                 }
@@ -218,6 +244,8 @@ class CameraSurveyFragment : Fragment() {
         requireContext(), Manifest.permission.CAMERA
     ) == PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(
         requireContext(), Manifest.permission.ACCESS_FINE_LOCATION
+    ) == PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(
+        requireContext(), Manifest.permission.RECORD_AUDIO
     ) == PackageManager.PERMISSION_GRANTED
 
     override fun onDestroyView() {
