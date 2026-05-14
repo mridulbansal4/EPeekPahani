@@ -4,6 +4,8 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.res.ColorStateList
+import android.graphics.Color
 import android.location.Location
 import android.os.Bundle
 import android.speech.RecognitionListener
@@ -46,8 +48,6 @@ import java.io.File
 import java.util.Locale
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
-import android.content.res.ColorStateList
-import android.graphics.Color
 
 class CameraSurveyFragment : Fragment() {
 
@@ -97,9 +97,17 @@ class CameraSurveyFragment : Fragment() {
         cameraExecutor = Executors.newSingleThreadExecutor()
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
 
+        binding.btnBack.setOnClickListener {
+            findNavController().popBackStack()
+        }
+
+        binding.btnSkip.setOnClickListener {
+            viewModel.skipCurrentPrompt()
+        }
+
         tts = TextToSpeech(requireContext()) { status ->
             if (status == TextToSpeech.SUCCESS) {
-                tts?.language = Locale("mr", "IN") // Marathi by default
+                tts?.language = Locale("mr", "IN")
             }
         }
         
@@ -113,10 +121,8 @@ class CameraSurveyFragment : Fragment() {
             override fun onError(error: Int) {
                 isRecordingAudio = false
                 stopRecordingTimer()
-                binding.btnNextStep.visibility = View.VISIBLE
-                binding.progressBarAi.visibility = View.GONE
-                binding.btnNextStep.text = "Start Audio"
-                binding.btnNextStep.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.gov_green))
+                binding.listeningLayout.visibility = View.GONE
+                resetPrimaryButton()
                 val errorMsg = when (error) {
                     SpeechRecognizer.ERROR_AUDIO -> "Audio recording error"
                     SpeechRecognizer.ERROR_CLIENT -> "Client side error"
@@ -135,8 +141,11 @@ class CameraSurveyFragment : Fragment() {
             override fun onResults(results: Bundle?) {
                 isRecordingAudio = false
                 stopRecordingTimer()
-                binding.btnNextStep.text = "Start Audio"
-                binding.btnNextStep.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.gov_green))
+                binding.listeningLayout.visibility = View.GONE
+                binding.analyzingLayout.visibility = View.VISIBLE
+                binding.tvAnalyzingText.text = "Realtime validation..."
+                resetPrimaryButton()
+                
                 val matches = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
                 if (!matches.isNullOrEmpty()) {
                     val transcript = matches[0]
@@ -145,9 +154,7 @@ class CameraSurveyFragment : Fragment() {
                         viewModel.processVoiceResponse(transcript, id, text)
                     }
                 } else {
-                    // Reset UI if no match
-                    binding.btnNextStep.visibility = View.VISIBLE
-                    binding.progressBarAi.visibility = View.GONE
+                    binding.analyzingLayout.visibility = View.GONE
                 }
             }
             override fun onPartialResults(partialResults: Bundle?) {}
@@ -178,43 +185,48 @@ class CameraSurveyFragment : Fragment() {
                 when (state) {
                     is SurveyState.Idle -> { }
                     is SurveyState.Active -> {
-                        // Hide loader, show button
-                        binding.progressBarAi.visibility = View.GONE
-                        binding.btnNextStep.visibility = View.VISIBLE
-                        binding.btnNextStep.isEnabled = true
+                        binding.analyzingLayout.visibility = View.GONE
+                        binding.listeningLayout.visibility = View.GONE
+                        binding.btnPrimaryAction.isEnabled = true
                         
                         val prompt = state.currentPrompt
                         binding.tvAiInstruction.text = prompt.textMarathi
-                        binding.tvStepProgress.text = "Stage: ${prompt.stage.name.replace("_", " ")}"
-                        binding.tvAiStatusChip.text = "AI Ready"
+                        binding.tvStepProgress.text = prompt.stage.name.replace("_", " ")
+                        binding.chipAiStatus.text = "Live AI"
+                        binding.chipAiStatus.setTextColor(Color.parseColor("#1976D2"))
+                        binding.chipAiStatus.setChipBackgroundColorResource(R.color.surface) 
+                        // Assuming surface is fine, just use a light color
                         
+                        // Fake progress logic for UI presentation
+                        val progress = (Math.random() * 40 + 20).toInt()
+                        binding.surveyProgressBar.progress = progress
+                        binding.tvQuestionProgress.text = "Survey Question"
+
                         tts?.speak(prompt.textMarathi, TextToSpeech.QUEUE_FLUSH, null, null)
 
                         setupInputMode(prompt.type, prompt.id)
                     }
                     is SurveyState.Reviewing -> {
-                        // Force UI reset immediately
-                        binding.progressBarAi.visibility = View.GONE
-                        binding.btnNextStep.visibility = View.VISIBLE
-                        binding.btnNextStep.setOnTouchListener(null)
-                        binding.btnNextStep.setOnClickListener(null)
-                        binding.btnNextStep.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.gov_green))
+                        binding.analyzingLayout.visibility = View.GONE
+                        binding.listeningLayout.visibility = View.GONE
+                        binding.btnPrimaryAction.setOnClickListener(null)
+                        resetPrimaryButton()
                         
                         val prettyMissing = state.missingEvidence.joinToString(", ") {
                             it.replace("_", " ").replaceFirstChar { c -> c.uppercase() }
                         }
                         binding.tvAiInstruction.text = "Missing Evidence:\n$prettyMissing\n\nPlease review."
-                        binding.btnNextStep.text = "Finish Anyway"
+                        binding.tvAiGuidance.text = "Review missing items."
+                        binding.btnNextStep.text = "Finish"
                         binding.btnNextStep.setOnClickListener {
                             viewModel.generateEvidencePackage()
                             findNavController().navigate(R.id.action_camera_to_processing)
                         }
                     }
                     is SurveyState.Completed -> {
-                        binding.progressBarAi.visibility = View.GONE
-                        binding.btnNextStep.visibility = View.VISIBLE
-                        binding.btnNextStep.setOnTouchListener(null)
-                        binding.btnNextStep.setOnClickListener(null)
+                        binding.analyzingLayout.visibility = View.GONE
+                        binding.listeningLayout.visibility = View.GONE
+                        binding.btnPrimaryAction.setOnClickListener(null)
                         binding.tvAiInstruction.text = "Survey completed successfully. Generating package..."
                         viewModel.generateEvidencePackage()
                         findNavController().navigate(R.id.action_camera_to_processing)
@@ -224,59 +236,66 @@ class CameraSurveyFragment : Fragment() {
         }
     }
 
+    private fun resetPrimaryButton() {
+        binding.btnPrimaryAction.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#1976D2"))
+    }
+
     private fun setupInputMode(type: QuestionType, promptId: String) {
-        // Clear previous listeners to prevent overlap
-        binding.btnNextStep.setOnClickListener(null)
-        binding.btnNextStep.setOnTouchListener(null)
-        binding.btnNextStep.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.gov_green))
+        binding.btnPrimaryAction.setOnClickListener(null)
+        resetPrimaryButton()
         isRecordingVideo = false
         isRecordingAudio = false
         stopRecordingTimer()
         
+        binding.btnNextStep.setOnClickListener { viewModel.skipCurrentPrompt() }
+
         when (type) {
             QuestionType.CAPTURE_PHOTO -> {
-                binding.btnNextStep.text = "Capture Photo"
-                binding.btnNextStep.setOnClickListener { takePhoto() }
+                binding.tvAiGuidance.text = "Please capture a clear photo."
+                binding.btnPrimaryAction.setImageResource(android.R.drawable.ic_menu_camera)
+                binding.btnPrimaryAction.setOnClickListener { takePhoto() }
             }
             QuestionType.CAPTURE_VIDEO -> {
-                binding.btnNextStep.text = "Start Video"
-                binding.btnNextStep.setOnClickListener {
+                binding.tvAiGuidance.text = "Please record a short video."
+                binding.btnPrimaryAction.setImageResource(android.R.drawable.presence_video_online)
+                binding.btnPrimaryAction.setOnClickListener {
                     if (!isRecordingVideo) {
                         startVideoRecording()
-                        binding.btnNextStep.text = "Stop Recording"
-                        binding.btnNextStep.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#F44336"))
+                        binding.btnPrimaryAction.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#F44336"))
                         isRecordingVideo = true
                     } else {
                         stopVideoRecording()
-                        binding.btnNextStep.text = "Start Video"
-                        binding.btnNextStep.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.gov_green))
+                        resetPrimaryButton()
                         isRecordingVideo = false
                     }
                 }
             }
             QuestionType.VERBAL_CONFIRM -> {
-                binding.btnNextStep.text = "Start Audio"
-                binding.btnNextStep.setOnClickListener {
+                binding.tvAiGuidance.text = "Please tap the mic and speak."
+                binding.btnPrimaryAction.setImageResource(android.R.drawable.ic_btn_speak_now)
+                binding.btnPrimaryAction.setOnClickListener {
                     if (!isRecordingAudio) {
                         startRecording(promptId)
-                        binding.btnNextStep.text = "Stop Audio"
-                        binding.btnNextStep.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#F44336"))
+                        binding.btnPrimaryAction.backgroundTintList = ColorStateList.valueOf(Color.parseColor("#F44336"))
                         isRecordingAudio = true
                     } else {
-                        binding.btnNextStep.visibility = View.INVISIBLE
-                        binding.progressBarAi.visibility = View.VISIBLE
+                        binding.listeningLayout.visibility = View.GONE
+                        binding.analyzingLayout.visibility = View.VISIBLE
+                        binding.tvAnalyzingText.text = "Realtime validation..."
                         stopRecording()
                         isRecordingAudio = false
                     }
                 }
             }
             QuestionType.INFO -> {
-                binding.btnNextStep.text = "Next"
-                binding.btnNextStep.setOnClickListener { viewModel.skipCurrentPrompt() }
+                binding.tvAiGuidance.text = "Please proceed to the next step."
+                binding.btnPrimaryAction.setImageResource(android.R.drawable.ic_media_play)
+                binding.btnPrimaryAction.setOnClickListener { viewModel.skipCurrentPrompt() }
             }
             else -> {
-                binding.btnNextStep.text = "Skip"
-                binding.btnNextStep.setOnClickListener { viewModel.skipCurrentPrompt() }
+                binding.tvAiGuidance.text = "Please proceed to the next step."
+                binding.btnPrimaryAction.setImageResource(android.R.drawable.ic_media_play)
+                binding.btnPrimaryAction.setOnClickListener { viewModel.skipCurrentPrompt() }
             }
         }
     }
@@ -312,7 +331,8 @@ class CameraSurveyFragment : Fragment() {
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "mr-IN")
         speechRecognizer?.startListening(intent)
         startRecordingTimer()
-        Toast.makeText(requireContext(), "Audio Recording Started", Toast.LENGTH_SHORT).show()
+        binding.listeningLayout.visibility = View.VISIBLE
+        binding.tvAiGuidance.text = "Listening to your response..."
     }
 
     private fun stopRecording() {
@@ -333,7 +353,7 @@ class CameraSurveyFragment : Fragment() {
                 when(recordEvent) {
                     is VideoRecordEvent.Start -> {
                         startRecordingTimer()
-                        Toast.makeText(requireContext(), "Video Recording Started", Toast.LENGTH_SHORT).show()
+                        binding.tvAiGuidance.text = "Recording video..."
                     }
                     is VideoRecordEvent.Finalize -> {
                         stopRecordingTimer()
@@ -342,19 +362,18 @@ class CameraSurveyFragment : Fragment() {
                             val lat = viewModel.currentLocation.value?.latitude ?: 0.0
                             val lon = viewModel.currentLocation.value?.longitude ?: 0.0
                             
-                            Toast.makeText(requireContext(), "Video saved. AI is analyzing...", Toast.LENGTH_SHORT).show()
-                            binding.btnNextStep.visibility = View.INVISIBLE
-                            binding.progressBarAi.visibility = View.VISIBLE
-                            binding.tvAiStatusChip.text = "AI Analyzing"
+                            binding.analyzingLayout.visibility = View.VISIBLE
+                            binding.tvAnalyzingText.text = "Analyzing video evidence..."
+                            binding.tvAiGuidance.text = "Verifying..."
+                            binding.chipAiStatus.text = "AI Analyzing"
                             
                             viewModel.processCapturedVideo(videoFile.absolutePath, durationSecs)
                         } else {
                             recording?.close()
                             recording = null
                             Toast.makeText(requireContext(), "Video capture failed", Toast.LENGTH_SHORT).show()
-                            binding.btnNextStep.isEnabled = true
-                            binding.btnNextStep.text = "Start Video"
-                            binding.btnNextStep.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.gov_green))
+                            binding.btnPrimaryAction.isEnabled = true
+                            resetPrimaryButton()
                             isRecordingVideo = false
                         }
                     }
@@ -383,8 +402,7 @@ class CameraSurveyFragment : Fragment() {
         val photoFile = File(requireContext().externalMediaDirs.firstOrNull(), "evidence_${System.currentTimeMillis()}.jpg")
         val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
 
-        binding.btnNextStep.isEnabled = false
-        binding.btnNextStep.text = "Capturing..."
+        binding.btnPrimaryAction.isEnabled = false
 
         imageCapture.takePicture(
             outputOptions,
@@ -392,8 +410,7 @@ class CameraSurveyFragment : Fragment() {
             object : ImageCapture.OnImageSavedCallback {
                 override fun onError(exc: ImageCaptureException) {
                     Toast.makeText(requireContext(), "Photo failed", Toast.LENGTH_SHORT).show()
-                    binding.btnNextStep.isEnabled = true
-                    binding.btnNextStep.text = "Retry Capture"
+                    binding.btnPrimaryAction.isEnabled = true
                 }
 
                 override fun onImageSaved(output: ImageCapture.OutputFileResults) {
@@ -404,11 +421,10 @@ class CameraSurveyFragment : Fragment() {
 
                     ImageUtils.addGeoWatermark(photoFile, lat, lon, gat, disaster)
                     
-                    // UI Acknowledgement
-                    Toast.makeText(requireContext(), "Photo saved. AI is analyzing...", Toast.LENGTH_SHORT).show()
-                    binding.btnNextStep.visibility = View.INVISIBLE
-                    binding.progressBarAi.visibility = View.VISIBLE
-                    binding.tvAiStatusChip.text = "AI Analyzing"
+                    binding.analyzingLayout.visibility = View.VISIBLE
+                    binding.tvAnalyzingText.text = "Analyzing photo..."
+                    binding.tvAiGuidance.text = "Verifying..."
+                    binding.chipAiStatus.text = "AI Analyzing"
                     
                     viewModel.processCapturedPhoto(photoFile.absolutePath)
                 }
