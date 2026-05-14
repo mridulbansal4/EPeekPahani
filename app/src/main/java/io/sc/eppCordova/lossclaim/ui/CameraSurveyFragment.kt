@@ -127,8 +127,12 @@ class CameraSurveyFragment : Fragment() {
             binding.layoutRecordingStatus.layoutParams = timerParams
             
             val fabParams = binding.btnPrimaryAction.layoutParams as ViewGroup.MarginLayoutParams
-            fabParams.bottomMargin = insets.bottom + (48 * density).toInt()
+            fabParams.bottomMargin = insets.bottom + (48 * density).toInt() // Reverted button height to allow more breathing room
             binding.btnPrimaryAction.layoutParams = fabParams
+
+            val cardParams = binding.questionCard.layoutParams as ViewGroup.MarginLayoutParams
+            cardParams.bottomMargin = (24 * density).toInt() // Pushed card down relative to button
+            binding.questionCard.layoutParams = cardParams
 
             windowInsets
         }
