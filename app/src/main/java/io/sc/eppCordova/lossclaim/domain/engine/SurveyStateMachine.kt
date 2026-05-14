@@ -41,7 +41,9 @@ class SurveyStateMachine @Inject constructor(
 
     fun processInput(
         observation: AiObservation? = null,
-        farmerAnswer: Map<String, Any>? = null
+        farmerAnswer: Map<String, Any>? = null,
+        photoCount: Int = 0,
+        videoCount: Int = 0
     ) {
         val currentState = _state.value
         if (currentState !is SurveyState.Active) return
@@ -51,11 +53,12 @@ class SurveyStateMachine @Inject constructor(
 
         // Evaluate Confidence
         val confidenceScore = confidenceScoringEngine.calculateCompleteness(
-            currentDisasterType, collectedObservations, farmerAnswers
+            currentDisasterType, collectedObservations, farmerAnswers, photoCount, videoCount
         )
 
         // Adaptive compression: If confidence is high enough, we can jump to COMPLETED
-        if (confidenceScore >= 90) {
+        // STRICT RULE: Exactly 2 photos and 1 video required.
+        if (confidenceScore >= 90 && photoCount == 2 && videoCount == 1) {
              _state.value = SurveyState.Completed
              return
         }
@@ -69,9 +72,13 @@ class SurveyStateMachine @Inject constructor(
         )
 
         if (nextPrompt == null) {
-            val missing = confidenceScoringEngine.getMissingEvidence(currentDisasterType, collectedObservations, farmerAnswers)
-            if (missing.isNotEmpty()) {
-                _state.value = SurveyState.Reviewing(missing)
+            val missing = confidenceScoringEngine.getMissingEvidence(currentDisasterType, collectedObservations, farmerAnswers, photoCount, videoCount)
+            if (missing.isNotEmpty() || photoCount != 2 || videoCount != 1) {
+                // Ensure even if missing list is somehow empty but counts are wrong, we catch it
+                val finalMissing = missing.toMutableList()
+                if (photoCount != 2 && !finalMissing.any { it.contains("photo") }) finalMissing.add("Exactly 2 photos required (Currently $photoCount)")
+                if (videoCount != 1 && !finalMissing.any { it.contains("video") }) finalMissing.add("Exactly 1 video required (Currently $videoCount)")
+                _state.value = SurveyState.Reviewing(finalMissing)
             } else {
                 _state.value = SurveyState.Completed
             }

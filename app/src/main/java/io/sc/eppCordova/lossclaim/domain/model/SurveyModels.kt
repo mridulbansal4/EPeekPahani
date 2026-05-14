@@ -14,7 +14,13 @@ enum class DisasterType {
     DROUGHT,
     PEST_ATTACK,
     DISEASE,
-    CYCLONE
+    CYCLONE,
+    EXCESS_RAINFALL,
+    FIRE_DAMAGE,
+    ANIMAL_DAMAGE,
+    UNSEASONAL_RAIN,
+    WIND_DAMAGE,
+    OTHER
 }
 
 enum class QuestionType {

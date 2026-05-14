@@ -59,13 +59,19 @@ class LossClaimViewModel @Inject constructor(
 
     fun setDamageType(type: String) {
         _selectedDamageType.value = type
-        currentDisasterTypeEnum = when (type.uppercase()) {
+        currentDisasterTypeEnum = when (type.uppercase().replace(" ", "_")) {
             "FLOOD" -> DisasterType.FLOOD
             "HAILSTORM" -> DisasterType.HAILSTORM
             "DROUGHT" -> DisasterType.DROUGHT
-            "PEST" -> DisasterType.PEST_ATTACK
-            "DISEASE" -> DisasterType.DISEASE
+            "PEST", "PEST_ATTACK" -> DisasterType.PEST_ATTACK
+            "DISEASE", "CROP_DISEASE" -> DisasterType.DISEASE
             "CYCLONE" -> DisasterType.CYCLONE
+            "EXCESS_RAINFALL" -> DisasterType.EXCESS_RAINFALL
+            "FIRE", "FIRE_DAMAGE" -> DisasterType.FIRE_DAMAGE
+            "ANIMAL", "ANIMAL_DAMAGE" -> DisasterType.ANIMAL_DAMAGE
+            "UNSEASONAL_RAIN" -> DisasterType.UNSEASONAL_RAIN
+            "WIND", "WIND_DAMAGE" -> DisasterType.WIND_DAMAGE
+            "OTHER" -> DisasterType.OTHER
             else -> DisasterType.UNKNOWN
         }
     }
@@ -104,7 +110,11 @@ class LossClaimViewModel @Inject constructor(
             
             // Feed the observation back into the state machine
             val primaryObservation = analysisResult.observations.firstOrNull()
-            surveyStateMachine.processInput(observation = primaryObservation)
+            surveyStateMachine.processInput(
+                observation = primaryObservation,
+                photoCount = _capturedPhotos.value.size,
+                videoCount = _capturedVideos.value.size
+            )
         }
     }
 
@@ -153,7 +163,11 @@ class LossClaimViewModel @Inject constructor(
             _capturedVideos.value = _capturedVideos.value + video
             
             val primaryObservation = mockObservations.firstOrNull()
-            surveyStateMachine.processInput(observation = primaryObservation)
+            surveyStateMachine.processInput(
+                observation = primaryObservation,
+                photoCount = _capturedPhotos.value.size,
+                videoCount = _capturedVideos.value.size
+            )
         }
     }
 
@@ -173,16 +187,27 @@ class LossClaimViewModel @Inject constructor(
             _voiceInteractions.value = _voiceInteractions.value + interaction
             
             // Feed farmer's semantic answers to the state machine
-            surveyStateMachine.processInput(farmerAnswer = voiceResult.extractedSemantics)
+            surveyStateMachine.processInput(
+                farmerAnswer = voiceResult.extractedSemantics,
+                photoCount = _capturedPhotos.value.size,
+                videoCount = _capturedVideos.value.size
+            )
         }
     }
 
     fun skipCurrentPrompt() {
         // Manually push flow forward if skipped
-        surveyStateMachine.processInput()
+        surveyStateMachine.processInput(
+            photoCount = _capturedPhotos.value.size,
+            videoCount = _capturedVideos.value.size
+        )
     }
 
     fun generateEvidencePackage(isMockLocationUsed: Boolean = false) {
+        if (_capturedPhotos.value.size != 2 || _capturedVideos.value.size != 1) {
+            // Strict Validation
+            return
+        }
         val durationSecs = (System.currentTimeMillis() - _surveyStartTime.value) / 1000
         val allObservations = _capturedPhotos.value.flatMap { photo -> 
             photo.observations.map { AiObservation(it, 1.0f, photo.timestamp, photo.imagePath) }
@@ -204,6 +229,8 @@ class LossClaimViewModel @Inject constructor(
     fun submitClaim() {
         viewModelScope.launch {
             val pkg = finalEvidencePackage ?: return@launch
+            if (pkg.photos.size != 2 || pkg.videos.size != 1) return@launch
+            
             val farmer = _currentFarmer.value ?: return@launch
             
             val claim = LossClaimEntity(
@@ -213,7 +240,11 @@ class LossClaimViewModel @Inject constructor(
                 damageType = _selectedDamageType.value,
                 damagePercentage = pkg.estimatedDamagePercentage,
                 estimatedCompensation = (pkg.estimatedDamagePercentage * 100).toDouble(), // mock logic
-                imagePath = pkg.photos.firstOrNull()?.imagePath ?: ""
+                imagePath1 = pkg.photos[0].imagePath,
+                imagePath2 = pkg.photos[1].imagePath,
+                videoPath = pkg.videos[0].videoPath,
+                latitude = pkg.photos[0].latitude,
+                longitude = pkg.photos[0].longitude
             )
             repository.saveLossClaim(claim)
         }

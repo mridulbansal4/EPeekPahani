@@ -29,7 +29,7 @@ class EvidencePackageBuilder @Inject constructor(
             acc
         }
         
-        val completenessScore = confidenceEngine.calculateCompleteness(disasterType, observations, farmerAnswers)
+        val completenessScore = confidenceEngine.calculateCompleteness(disasterType, observations, farmerAnswers, photos.size, videos.size)
         
         // Simple damage estimation heuristic based on verbal answers
         val damageVal = farmerAnswers["damage_percentage"]?.toString()?.toIntOrNull()

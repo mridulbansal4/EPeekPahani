@@ -16,24 +16,26 @@ import retrofit2.http.Part
 import retrofit2.http.Path
 import retrofit2.http.Query
 
+import retrofit2.Response
+
 interface BackendApi {
 
     @GET("api/farmers")
-    suspend fun getFarmers(): List<FarmerDto>
+    suspend fun getFarmers(): Response<List<FarmerDto>>
 
     @GET("api/farmers/{id}/claims")
-    suspend fun getFarmerClaims(@Path("id") farmerId: String): ClaimsListDto
+    suspend fun getFarmerClaims(@Path("id") farmerId: String): Response<ClaimsListDto>
 
     @POST("api/claims")
-    suspend fun submitClaim(@retrofit2.http.Body request: ClaimRequest): ClaimResponse
+    suspend fun submitClaim(@retrofit2.http.Body request: ClaimRequest): Response<ClaimResponse>
 
     @Multipart
     @POST("api/upload")
-    suspend fun uploadFile(@Part file: MultipartBody.Part): UploadResponse
+    suspend fun uploadFile(@Part file: MultipartBody.Part): Response<UploadResponse>
 
     @GET("api/payments")
-    suspend fun getPayments(@Query("farmerId") farmerId: String? = null): List<PaymentDto>
+    suspend fun getPayments(@Query("farmerId") farmerId: String? = null): Response<List<PaymentDto>>
 
     @GET("api/kyc")
-    suspend fun getKycStatus(@Query("farmerId") farmerId: String? = null): List<KycDto>
+    suspend fun getKycStatus(@Query("farmerId") farmerId: String? = null): Response<List<KycDto>>
 }

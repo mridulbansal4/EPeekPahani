@@ -12,7 +12,11 @@ class KycRepository @Inject constructor(
     suspend fun getKycStatus(farmerId: String?): ApiResult<List<KycDto>> {
         return try {
             val response = backendApi.getKycStatus(farmerId)
-            ApiResult.Success(response)
+            if (response.isSuccessful && response.body() != null) {
+                ApiResult.Success(response.body()!!)
+            } else {
+                ApiResult.Error(response.message())
+            }
         } catch (e: Exception) {
             ApiResult.Error(e.message ?: "Failed to fetch KYC status")
         }

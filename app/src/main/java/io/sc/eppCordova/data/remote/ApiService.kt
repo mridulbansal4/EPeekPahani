@@ -14,26 +14,26 @@ data class VerifyOtpRequest(val mobile: String, val otp: String)
 
 interface ApiService {
     @GET("divisions")
-    suspend fun getDivisions(): List<String>
+    suspend fun getDivisions(): retrofit2.Response<List<String>>
 
     @GET("districts")
-    suspend fun getDistricts(@Query("division") division: String): List<String>
+    suspend fun getDistricts(@Query("division") division: String): retrofit2.Response<List<String>>
 
     @GET("talukas")
-    suspend fun getTalukas(@Query("district") district: String): List<String>
+    suspend fun getTalukas(@Query("district") district: String): retrofit2.Response<List<String>>
 
     @GET("villages")
-    suspend fun getVillages(@Query("taluka") taluka: String): List<String>
+    suspend fun getVillages(@Query("taluka") taluka: String): retrofit2.Response<List<String>>
 
     @GET("parcels")
-    suspend fun getParcels(@Query("village") village: String): List<LandRecord>
+    suspend fun getParcels(@Query("village") village: String): retrofit2.Response<List<LandRecord>>
 
     @POST("submitSurvey")
-    suspend fun submitSurvey(@Body record: CropRecord): ApiResponse
+    suspend fun submitSurvey(@Body record: CropRecord): retrofit2.Response<ApiResponse>
 
     @POST("sendOtp")
-    suspend fun sendOtp(@Body request: OtpRequest): ApiResponse
+    suspend fun sendOtp(@Body request: OtpRequest): retrofit2.Response<ApiResponse>
 
     @POST("verifyOtp")
-    suspend fun verifyOtp(@Body request: VerifyOtpRequest): TokenResponse
+    suspend fun verifyOtp(@Body request: VerifyOtpRequest): retrofit2.Response<TokenResponse>
 }

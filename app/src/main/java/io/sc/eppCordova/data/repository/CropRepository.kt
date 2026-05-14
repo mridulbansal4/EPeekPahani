@@ -16,7 +16,7 @@ class CropRepository @Inject constructor(
     suspend fun submitSurvey(record: CropRecord): Boolean {
         return try {
             val response = apiService.submitSurvey(record)
-            if (response.success) {
+            if (response.isSuccessful && response.body()?.success == true) {
                 cropRecordDao.insertCropRecord(record.copy(isSubmitted = true))
                 true
             } else {
@@ -34,7 +34,7 @@ class CropRepository @Inject constructor(
         pending.forEach { record ->
             try {
                 val response = apiService.submitSurvey(record)
-                if (response.success) {
+                if (response.isSuccessful && response.body()?.success == true) {
                     cropRecordDao.markAsSubmitted(record.cropId)
                 }
             } catch (e: Exception) {
@@ -46,7 +46,7 @@ class CropRepository @Inject constructor(
     suspend fun sendOtp(mobile: String): Boolean {
         return try {
             val response = apiService.sendOtp(OtpRequest(mobile))
-            response.success
+            response.isSuccessful && response.body()?.success == true
         } catch (e: Exception) {
             false
         }
@@ -55,15 +55,15 @@ class CropRepository @Inject constructor(
     suspend fun verifyOtp(mobile: String, otp: String): Boolean {
         return try {
             val response = apiService.verifyOtp(VerifyOtpRequest(mobile, otp))
-            response.success
+            response.isSuccessful && response.body()?.success == true
         } catch (e: Exception) {
             false
         }
     }
     
     // Fallbacks for Admin Units
-    suspend fun getDivisions(): List<String> = try { apiService.getDivisions() } catch (e: Exception) { listOf("पुणे", "मुंबई", "नाशिक", "औरंगाबाद") }
-    suspend fun getDistricts(division: String): List<String> = try { apiService.getDistricts(division) } catch (e: Exception) { listOf("पुणे", "सातारा", "सोलापूर") }
-    suspend fun getTalukas(district: String): List<String> = try { apiService.getTalukas(district) } catch (e: Exception) { listOf("हवेली", "मुळशी", "खेड") }
-    suspend fun getVillages(taluka: String): List<String> = try { apiService.getVillages(taluka) } catch (e: Exception) { listOf("उरुळी कांचन", "लोहगाव", "मांजरी") }
+    suspend fun getDivisions(): List<String> = try { apiService.getDivisions().body() ?: listOf("पुणे", "मुंबई", "नाशिक", "औरंगाबाद") } catch (e: Exception) { listOf("पुणे", "मुंबई", "नाशिक", "औरंगाबाद") }
+    suspend fun getDistricts(division: String): List<String> = try { apiService.getDistricts(division).body() ?: listOf("पुणे", "सातारा", "सोलापूर") } catch (e: Exception) { listOf("पुणे", "सातारा", "सोलापूर") }
+    suspend fun getTalukas(district: String): List<String> = try { apiService.getTalukas(district).body() ?: listOf("हवेली", "मुळशी", "खेड") } catch (e: Exception) { listOf("हवेली", "मुळशी", "खेड") }
+    suspend fun getVillages(taluka: String): List<String> = try { apiService.getVillages(taluka).body() ?: listOf("उरुळी कांचन", "लोहगाव", "मांजरी") } catch (e: Exception) { listOf("उरुळी कांचन", "लोहगाव", "मांजरी") }
 }

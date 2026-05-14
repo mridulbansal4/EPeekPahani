@@ -11,7 +11,9 @@ class ConfidenceScoringEngine @Inject constructor() {
     fun calculateCompleteness(
         disasterType: DisasterType,
         observations: List<AiObservation>,
-        farmerAnswers: Map<String, Any>
+        farmerAnswers: Map<String, Any>,
+        photoCount: Int,
+        videoCount: Int
     ): Int {
         var score = 0
         
@@ -26,6 +28,11 @@ class ConfidenceScoringEngine @Inject constructor() {
         // Correlation between farmer answers and AI observations
         val hasDisasterCorrelation = checkCorrelation(disasterType, uniqueObservations, farmerAnswers)
         if (hasDisasterCorrelation) score += 40
+        
+        // Hard penalty if constraints not met
+        if (photoCount != 2 || videoCount != 1) {
+            score = minOf(score, 80) // Prevent reaching 90% threshold for early completion
+        }
 
         return score.coerceIn(0, 100)
     }
@@ -45,12 +52,17 @@ class ConfidenceScoringEngine @Inject constructor() {
     fun getMissingEvidence(
         disasterType: DisasterType,
         observations: List<AiObservation>,
-        farmerAnswers: Map<String, Any>
+        farmerAnswers: Map<String, Any>,
+        photoCount: Int,
+        videoCount: Int
     ): List<String> {
         val missing = mutableListOf<String>()
         val types = observations.map { it.type }
         
-        if (observations.isEmpty()) missing.add("crop_overview_photo")
+        if (photoCount < 2) missing.add("${2 - photoCount} more photo(s) required (exactly 2 needed)")
+        if (photoCount > 2) missing.add("Too many photos (exactly 2 needed, please retake or remove)")
+        if (videoCount < 1) missing.add("Video evidence required (exactly 1 needed)")
+        if (videoCount > 1) missing.add("Too many videos (exactly 1 needed, please retake or remove)")
         
         when (disasterType) {
             DisasterType.FLOOD -> {

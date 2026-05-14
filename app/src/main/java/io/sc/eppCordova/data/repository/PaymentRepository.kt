@@ -12,7 +12,11 @@ class PaymentRepository @Inject constructor(
     suspend fun getPayments(farmerId: String?): ApiResult<List<PaymentDto>> {
         return try {
             val response = backendApi.getPayments(farmerId)
-            ApiResult.Success(response)
+            if (response.isSuccessful && response.body() != null) {
+                ApiResult.Success(response.body()!!)
+            } else {
+                ApiResult.Error(response.message())
+            }
         } catch (e: Exception) {
             ApiResult.Error(e.message ?: "Failed to fetch payments")
         }

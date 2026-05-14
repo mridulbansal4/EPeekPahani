@@ -12,7 +12,11 @@ data class LossClaimEntity(
     val damageType: String,
     val damagePercentage: Int,
     val estimatedCompensation: Double,
-    val imagePath: String,
+    val imagePath1: String,
+    val imagePath2: String,
+    val videoPath: String,
+    val latitude: Double = 0.0,
+    val longitude: Double = 0.0,
     val isSynced: Boolean = false,
     val timestamp: Long = System.currentTimeMillis()
 )

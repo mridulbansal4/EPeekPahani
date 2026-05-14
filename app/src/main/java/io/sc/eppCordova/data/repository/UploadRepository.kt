@@ -30,10 +30,15 @@ class UploadRepository @Inject constructor(
             val part = MultipartBody.Part.createFormData("file", fileName, requestBody)
 
             val response = backendApi.uploadFile(part)
-            if (response.success) {
-                ApiResult.Success(response)
+            if (response.isSuccessful && response.body() != null) {
+                val uploadResponse = response.body()!!
+                if (uploadResponse.success) {
+                    ApiResult.Success(uploadResponse)
+                } else {
+                    ApiResult.Error(uploadResponse.message ?: "Upload failed")
+                }
             } else {
-                ApiResult.Error(response.message ?: "Upload failed")
+                ApiResult.Error(response.message())
             }
         } catch (e: Exception) {
             ApiResult.Error(e.message ?: "Upload failed")

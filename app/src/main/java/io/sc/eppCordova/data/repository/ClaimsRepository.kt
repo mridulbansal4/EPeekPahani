@@ -19,7 +19,11 @@ class ClaimsRepository @Inject constructor(
     suspend fun submitClaim(request: ClaimRequest): ApiResult<ClaimResponse> {
         return try {
             val response = backendApi.submitClaim(request)
-            ApiResult.Success(response)
+            if (response.isSuccessful && response.body() != null) {
+                ApiResult.Success(response.body()!!)
+            } else {
+                ApiResult.Error(response.message())
+            }
         } catch (e: Exception) {
             ApiResult.Error(e.message ?: "Claim submission failed")
         }
@@ -28,7 +32,11 @@ class ClaimsRepository @Inject constructor(
     suspend fun getFarmerClaims(farmerId: String): ApiResult<List<ClaimResponse>> {
         return try {
             val response = backendApi.getFarmerClaims(farmerId)
-            ApiResult.Success(response.claims ?: emptyList())
+            if (response.isSuccessful && response.body() != null) {
+                ApiResult.Success(response.body()!!.claims ?: emptyList())
+            } else {
+                ApiResult.Error(response.message())
+            }
         } catch (e: Exception) {
             ApiResult.Error(e.message ?: "Failed to fetch claims")
         }
