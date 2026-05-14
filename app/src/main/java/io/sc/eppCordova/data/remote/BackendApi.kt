@@ -38,4 +38,10 @@ interface BackendApi {
 
     @GET("api/kyc")
     suspend fun getKycStatus(@Query("farmerId") farmerId: String? = null): Response<List<KycDto>>
+
+    @GET("api/reports")
+    suspend fun getReports(@Query("farmerId") farmerId: String? = null): Response<ReportsListDto>
+
+    @GET("api/reports/{id}")
+    suspend fun getReportById(@Path("id") reportId: String): Response<ReportDto>
 }

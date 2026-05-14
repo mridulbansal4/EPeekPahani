@@ -50,6 +50,24 @@ class ClaimDetailFragment : Fragment() {
                 }
             }
         }
+
+        viewModel.selectedReport.observe(viewLifecycleOwner) { report ->
+            if (report != null) {
+                binding.tvDetail.append(buildString {
+                    appendLine()
+                    appendLine("=== बॅकएंड अहवाल ===")
+                    appendLine("अहवाल क्र: ${report.reportId ?: "-"}")
+                    appendLine("प्रक्रिया स्थिती: ${report.workflowStage ?: "-"}")
+                    appendLine("विश्वास गुण: ${report.confidenceScore?.let { "$it%" } ?: "-"}")
+                    appendLine("भू-सत्यापन: ${boolLabel(report.geoVerified)}")
+                    appendLine("तीव्रता पातळी: ${report.severityLevel ?: "-"}")
+                    appendLine("AI टिप्पण्या: ${report.aiRemarks ?: "-"}")
+                    appendLine("अधिकारी टिप्पण्या: ${report.officerRemarks ?: "-"}")
+                    appendLine("नियुक्त अधिकारी: ${report.assignedOfficer ?: "-"}")
+                    appendLine("तक्रार दुवा: ${report.grievanceLinkage ?: "-"}")
+                })
+            }
+        }
     }
 
     private fun workflowLabel(stage: String?): String = when {

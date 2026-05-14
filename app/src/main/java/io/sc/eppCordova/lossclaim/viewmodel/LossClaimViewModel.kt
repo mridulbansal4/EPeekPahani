@@ -4,6 +4,11 @@ import android.location.Location
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import io.sc.eppCordova.data.remote.dto.ClaimRequest
+import io.sc.eppCordova.data.remote.dto.ReportDto
+import io.sc.eppCordova.data.repository.ApiResult
+import io.sc.eppCordova.data.repository.ClaimsRepository
+import io.sc.eppCordova.data.repository.ReportRepository
 import io.sc.eppCordova.lossclaim.data.FarmerEntity
 import io.sc.eppCordova.lossclaim.data.LossClaimEntity
 import io.sc.eppCordova.lossclaim.data.LossClaimRepository
@@ -22,7 +27,9 @@ class LossClaimViewModel @Inject constructor(
     private val surveyStateMachine: SurveyStateMachine,
     private val visionAnalysisEngine: VisionAnalysisEngine,
     private val voiceProcessingEngine: VoiceProcessingEngine,
-    private val evidencePackageBuilder: EvidencePackageBuilder
+    private val evidencePackageBuilder: EvidencePackageBuilder,
+    private val claimsRepository: ClaimsRepository,
+    private val reportRepository: ReportRepository
 ) : ViewModel() {
 
     private val _currentFarmer = MutableStateFlow<FarmerEntity?>(null)
@@ -50,6 +57,20 @@ class LossClaimViewModel @Inject constructor(
 
     private var currentDisasterTypeEnum: DisasterType = DisasterType.UNKNOWN
     var finalEvidencePackage: EvidencePackage? = null
+
+    private val _generatedReport = MutableStateFlow<ReportDto?>(null)
+    val generatedReport: StateFlow<ReportDto?> = _generatedReport.asStateFlow()
+
+    private val _backendSubmitState = MutableStateFlow<BackendSubmitState>(BackendSubmitState.IDLE)
+    val backendSubmitState: StateFlow<BackendSubmitState> = _backendSubmitState.asStateFlow()
+
+    sealed class BackendSubmitState {
+        data object IDLE : BackendSubmitState()
+        data object SUBMITTING : BackendSubmitState()
+        data object FETCHING_REPORT : BackendSubmitState()
+        data object SUCCESS : BackendSubmitState()
+        data class ERROR(val message: String) : BackendSubmitState()
+    }
 
     fun loadFarmerData(mobileNumber: String) {
         viewModelScope.launch {
@@ -230,16 +251,16 @@ class LossClaimViewModel @Inject constructor(
         viewModelScope.launch {
             val pkg = finalEvidencePackage ?: return@launch
             if (pkg.photos.size != 2 || pkg.videos.size != 1) return@launch
-            
+
             val farmer = _currentFarmer.value ?: return@launch
-            
+
             val claim = LossClaimEntity(
                 mobileNumber = farmer.mobileNumber,
                 gatNumber = farmer.gatNumber,
                 crop = farmer.primaryCrop ?: "Unknown",
                 damageType = _selectedDamageType.value,
                 damagePercentage = pkg.estimatedDamagePercentage,
-                estimatedCompensation = (pkg.estimatedDamagePercentage * 100).toDouble(), // mock logic
+                estimatedCompensation = (pkg.estimatedDamagePercentage * 100).toDouble(),
                 imagePath1 = pkg.photos[0].imagePath,
                 imagePath2 = pkg.photos[1].imagePath,
                 videoPath = pkg.videos[0].videoPath,
@@ -247,6 +268,43 @@ class LossClaimViewModel @Inject constructor(
                 longitude = pkg.photos[0].longitude
             )
             repository.saveLossClaim(claim)
+
+            _backendSubmitState.value = BackendSubmitState.SUBMITTING
+            val request = ClaimRequest(
+                farmerId = farmer.mobileNumber,
+                cropType = farmer.primaryCrop ?: "Unknown",
+                claimType = _selectedDamageType.value,
+                village = farmer.village,
+                latitude = pkg.photos[0].latitude,
+                longitude = pkg.photos[0].longitude,
+                incidentDate = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault()).format(java.util.Date()),
+                affectedAreaHa = farmer.area?.filter { it.isDigit() || it == '.' }?.toDoubleOrNull() ?: 1.0,
+                gatNumber = farmer.gatNumber,
+                description = "Loss claim due to ${_selectedDamageType.value}"
+            )
+
+            when (val result = claimsRepository.submitClaim(request)) {
+                is ApiResult.Success -> {
+                    val claimId = result.data.claimId
+                    if (claimId != null) {
+                        _backendSubmitState.value = BackendSubmitState.FETCHING_REPORT
+                        when (val reportResult = reportRepository.getReportById(claimId)) {
+                            is ApiResult.Success -> {
+                                _generatedReport.value = reportResult.data
+                                _backendSubmitState.value = BackendSubmitState.SUCCESS
+                            }
+                            is ApiResult.Error -> {
+                                _backendSubmitState.value = BackendSubmitState.SUCCESS
+                            }
+                        }
+                    } else {
+                        _backendSubmitState.value = BackendSubmitState.SUCCESS
+                    }
+                }
+                is ApiResult.Error -> {
+                    _backendSubmitState.value = BackendSubmitState.ERROR(result.message)
+                }
+            }
         }
     }
 }

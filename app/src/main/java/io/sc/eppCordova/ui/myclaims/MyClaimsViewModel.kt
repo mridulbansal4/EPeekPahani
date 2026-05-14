@@ -9,8 +9,10 @@ import io.sc.eppCordova.data.local.dao.CropRecordDao
 import io.sc.eppCordova.data.local.dao.LossClaimDao
 import io.sc.eppCordova.data.local.entity.CropRecord
 import io.sc.eppCordova.data.remote.dto.ClaimResponse
+import io.sc.eppCordova.data.remote.dto.ReportDto
 import io.sc.eppCordova.data.repository.ApiResult
 import io.sc.eppCordova.data.repository.ClaimsRepository
+import io.sc.eppCordova.data.repository.ReportRepository
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -27,7 +29,8 @@ sealed class ClaimsLoadState {
 class MyClaimsViewModel @Inject constructor(
     private val cropRecordDao: CropRecordDao,
     private val lossClaimDao: LossClaimDao,
-    private val claimsRepository: ClaimsRepository
+    private val claimsRepository: ClaimsRepository,
+    private val reportRepository: ReportRepository
 ) : ViewModel() {
 
     private val _cropRecords = MutableLiveData<List<CropRecord>>()
@@ -39,8 +42,13 @@ class MyClaimsViewModel @Inject constructor(
     private val _selectedClaim = MutableLiveData<ClaimResponse?>()
     val selectedClaim: LiveData<ClaimResponse?> = _selectedClaim
 
+    private val _selectedReport = MutableLiveData<ReportDto?>()
+    val selectedReport: LiveData<ReportDto?> = _selectedReport
+
     private val _certificates = MutableLiveData<List<CropRecord>>()
     val certificates: LiveData<List<CropRecord>> = _certificates
+
+    private val _allReports = MutableLiveData<List<ReportDto>>(emptyList())
 
     private var pollingJob: Job? = null
     private var currentFarmerId: String? = null
@@ -63,6 +71,7 @@ class MyClaimsViewModel @Inject constructor(
                 _cropRecords.postValue(crops)
                 _certificates.postValue(crops.filter { it.certificateId != null })
                 fetchClaims(farmerId)
+                fetchReports(farmerId)
                 startPolling(farmerId)
             }
         }
@@ -79,6 +88,23 @@ class MyClaimsViewModel @Inject constructor(
         }
     }
 
+    private suspend fun fetchReports(farmerId: String) {
+        when (val result = reportRepository.getReports(farmerId)) {
+            is ApiResult.Success -> {
+                _allReports.value = result.data
+                syncSelectedReport()
+            }
+            is ApiResult.Error -> { }
+        }
+    }
+
+    private fun syncSelectedReport() {
+        val claimId = _selectedClaim.value?.claimId
+        if (claimId != null) {
+            _selectedReport.value = _allReports.value?.find { it.reportId == claimId }
+        }
+    }
+
     private fun startPolling(farmerId: String) {
         pollingJob?.cancel()
         pollingJob = viewModelScope.launch {
@@ -86,6 +112,7 @@ class MyClaimsViewModel @Inject constructor(
                 delay(5000)
                 if (currentFarmerId != null) {
                     fetchClaims(farmerId)
+                    fetchReports(farmerId)
                 }
             }
         }
@@ -93,6 +120,7 @@ class MyClaimsViewModel @Inject constructor(
 
     fun selectClaim(claim: ClaimResponse) {
         _selectedClaim.value = claim
+        _selectedReport.value = _allReports.value?.find { it.reportId == claim.claimId }
     }
 
     fun retry() {
@@ -101,6 +129,7 @@ class MyClaimsViewModel @Inject constructor(
             _claimsState.value = ClaimsLoadState.Loading
             viewModelScope.launch {
                 fetchClaims(farmerId)
+                fetchReports(farmerId)
             }
         }
     }

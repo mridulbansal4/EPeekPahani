@@ -77,3 +77,22 @@ data class ApiResultDto<T>(
 data class ClaimsListDto(
     val claims: List<ClaimResponse>?
 )
+
+data class ReportDto(
+    val reportId: String?,
+    val surveyId: String?,
+    val workflowStage: String?,
+    val confidenceScore: Double?,
+    val geoVerified: Boolean?,
+    val severityLevel: String?,
+    val aiRemarks: String?,
+    val officerRemarks: String?,
+    val assignedOfficer: String?,
+    val grievanceLinkage: String?,
+    val createdAt: String?,
+    val updatedAt: String?
+)
+
+data class ReportsListDto(
+    val reports: List<ReportDto>?
+)
