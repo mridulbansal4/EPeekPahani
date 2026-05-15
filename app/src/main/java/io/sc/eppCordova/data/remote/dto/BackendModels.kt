@@ -25,7 +25,9 @@ data class ClaimRequest(
 )
 
 data class ClaimResponse(
-    val claimId: String?,
+    @SerializedName("surveyId") val claimId: String?,
+    val success: Boolean?,
+    val status: String?,
     val farmerId: String?,
     val claimType: String?,
     val cropType: String?,

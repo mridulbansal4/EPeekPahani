@@ -135,7 +135,7 @@ class ClaimResultFragment : Fragment() {
                                 .show()
                         }
                         is LossClaimViewModel.BackendSubmitState.ERROR -> {
-                            binding.btnSubmitClaim.text = "Done"
+                            binding.btnSubmitClaim.text = "Upload Queued"
                             binding.btnSubmitClaim.isEnabled = true
                         }
                     }

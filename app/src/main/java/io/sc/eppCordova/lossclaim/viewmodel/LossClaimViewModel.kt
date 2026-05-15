@@ -23,6 +23,11 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.io.File
 import javax.inject.Inject
+import android.content.Context
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
+import io.sc.eppCordova.lossclaim.data.OfflineSyncWorker
+import dagger.hilt.android.qualifiers.ApplicationContext
 
 @HiltViewModel
 class LossClaimViewModel @Inject constructor(
@@ -33,7 +38,8 @@ class LossClaimViewModel @Inject constructor(
     private val evidencePackageBuilder: EvidencePackageBuilder,
     private val claimsRepository: ClaimsRepository,
     private val reportRepository: ReportRepository,
-    private val evidenceUploadRepository: EvidenceUploadRepository
+    private val evidenceUploadRepository: EvidenceUploadRepository,
+    @ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private val _currentFarmer = MutableStateFlow<FarmerEntity?>(null)
@@ -330,6 +336,7 @@ class LossClaimViewModel @Inject constructor(
                 _backendSubmitState.value = BackendSubmitState.RETRY_PENDING(
                     message = "Media upload failed. Will retry in background."
                 )
+                enqueueOfflineSync()
                 return@launch
             }
 
@@ -354,26 +361,15 @@ class LossClaimViewModel @Inject constructor(
             when (val result = claimsRepository.submitClaim(request)) {
                 is ApiResult.Success -> {
                     Log.d("LossClaimVM", "Claim submitted successfully. ID: ${result.data.claimId}")
-                    val claimId = result.data.claimId
-                    if (claimId != null) {
-                        _backendSubmitState.value = BackendSubmitState.PROCESSING
-                        when (val reportResult = reportRepository.getReportById(claimId)) {
-                            is ApiResult.Success -> {
-                                _generatedReport.value = reportResult.data
-                                _backendSubmitState.value = BackendSubmitState.COMPLETED
-                            }
-                            is ApiResult.Error -> {
-                                Log.e("LossClaimVM", "Failed to fetch report: ${reportResult.message}")
-                                _backendSubmitState.value = BackendSubmitState.COMPLETED
-                            }
-                        }
-                    } else {
-                        _backendSubmitState.value = BackendSubmitState.COMPLETED
-                    }
+                    _backendSubmitState.value = BackendSubmitState.PROCESSING
+                    // Wait a short delay to simulate UI progress, then complete since backend runs asynchronously
+                    kotlinx.coroutines.delay(1000)
+                    _backendSubmitState.value = BackendSubmitState.COMPLETED
                 }
                 is ApiResult.Error -> {
                     Log.e("LossClaimVM", "Claim submission failed: ${result.message}")
                     _backendSubmitState.value = BackendSubmitState.RETRY_PENDING("Metadata sync failed. Queued for offline sync.")
+                    enqueueOfflineSync()
                 }
             }
         }
@@ -381,5 +377,10 @@ class LossClaimViewModel @Inject constructor(
 
     fun retryUpload() {
         submitClaim()
+    }
+
+    private fun enqueueOfflineSync() {
+        val workRequest = OneTimeWorkRequestBuilder<OfflineSyncWorker>().build()
+        WorkManager.getInstance(context).enqueue(workRequest)
     }
 }
