@@ -23,16 +23,16 @@ Built specifically for the Android platform, it offers an intuitive, localized i
 
 ## Core Features
 
-### 🧑‍🌾 Decentralized Self-Reporting
+### Decentralized Self-Reporting
 Farmers leverage their smartphones to capture geotagged, timestamped images of their crops, instantly tying their agricultural status to their official profiles.
 
-### 📶 Robust Offline Synchronization
+### Robust Offline Synchronization
 A powerful RoomDB local database architecture ensures that farmers can capture data deep in the fields without internet connectivity. Data is safely cached and seamlessly synced with the cloud once network access is restored.
 
-### 📍 Precision Geofencing
+### Precision Geofencing
 Validates crop photos mathematically by cross-referencing embedded GPS metadata against government-registered land boundaries, preventing fraudulent claims.
 
-### 🌍 Multilingual UI
+### Multilingual UI
 Thoughtfully localized interface supporting regional languages to ensure maximum accessibility for diverse farming communities.
 
 ---
