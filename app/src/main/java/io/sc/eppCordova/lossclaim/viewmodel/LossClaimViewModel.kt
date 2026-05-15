@@ -288,6 +288,7 @@ class LossClaimViewModel @Inject constructor(
 
             val uploadedEvidence = mutableListOf<UploadedEvidenceDto>()
             val failedFiles = mutableListOf<String>()
+            var lastUploadError: String? = null
 
             for ((index, photo) in pkg.photos.withIndex()) {
                 _backendSubmitState.value = BackendSubmitState.UPLOADING_FILES(index + 1, totalFiles)
@@ -306,6 +307,7 @@ class LossClaimViewModel @Inject constructor(
                     is ApiResult.Error -> {
                         Log.e("LossClaimVM", "Photo upload failed: ${result.message}")
                         failedFiles.add(file.name)
+                        lastUploadError = result.message
                     }
                 }
             }
@@ -327,6 +329,7 @@ class LossClaimViewModel @Inject constructor(
                     is ApiResult.Error -> {
                         Log.e("LossClaimVM", "Video upload failed: ${result.message}")
                         failedFiles.add(file.name)
+                        lastUploadError = result.message
                     }
                 }
             }
@@ -334,7 +337,7 @@ class LossClaimViewModel @Inject constructor(
             if (failedFiles.isNotEmpty() && uploadedEvidence.isEmpty()) {
                 Log.e("LossClaimVM", "All uploads failed")
                 _backendSubmitState.value = BackendSubmitState.RETRY_PENDING(
-                    message = "Media upload failed. Will retry in background."
+                    message = "Upload failed: ${lastUploadError ?: "Unknown error"}"
                 )
                 enqueueOfflineSync()
                 return@launch

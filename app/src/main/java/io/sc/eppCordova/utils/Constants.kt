@@ -12,7 +12,7 @@ object Constants {
      * Switch between the two depending on your test setup.
      */
 
-    const val BACKEND_BASE_URL = "http://10.0.2.2:5000/"
+    const val BACKEND_BASE_URL = "http://192.168.1.6:5000/" // Change this to your computer's IPv4 address (e.g. 192.168.x.x) if using a real phone. Keep 10.0.2.2 if using Emulator.
     const val PREFS_NAME = "user_prefs"
     const val PREF_TOKEN = "USER_TOKEN"
     const val PREF_USER_ID = "USER_ID"
